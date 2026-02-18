@@ -1,0 +1,16 @@
+# Ignore dataset
+data/raw/
+data/processed/
+
+# Ignore large files
+*.dicom
+*.dcm
+*.png
+*.jpg
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
