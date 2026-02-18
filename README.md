@@ -29,27 +29,29 @@ Annotation conversion (CSV → YOLO format)
 
 A subset of 50–60 training images was used to validate the pipeline during development.
 
-📂 Project Structure
+**b13-cliniscan/**
+
 b13-cliniscan/
 │
-├── data/
-│   ├── raw/train/          # Original DICOM images
-│   ├── processed/png-images/
-│   └── train.csv
+├── 📁 data/
+│ ├── 📁 raw/
+│ │ └── 📁 train/ # Original DICOM images
+│ ├── 📁 processed/
+│ │ └── 📁 png-images/
+│ └── 📄 train.csv
 │
-├── docs/
-│   ├── Dataset_Description.pdf
-│   └── Milestone1_Report.pdf
+├── 📁 docs/
+│ ├── 📄 Dataset_Description.pdf
+│ └── 📄 Milestone1_Report.pdf
 │
-├── src/
-│   ├── dicom_to_png.py
-│   ├── preprocessing.py
-│   └── annotation_conversion.py
+├── 📁 src/
+│ ├── 🐍 dicom_to_png.py
+│ ├── 🐍 preprocessing.py
+│ └── 🐍 annotation_conversion.py
 │
-├── README.md
-├── requirements.txt
-└── LICENSE
-
+├── 📄 README.md
+├── 📦 requirements.txt
+└── 📜 LICENSE
 
 The repository follows a modular structure separating raw data, processed outputs, source code, and documentation.
 
@@ -81,6 +83,10 @@ Run pipeline:
 python src/dicom_to_png.py
 python src/preprocessing.py
 python src/annotation_conversion.py
+
+*Dataset not included in repository.
+*Download from Kaggle and place inside data/raw/
+
 
 📌 Outcome of Milestone 1
 
