@@ -31,7 +31,7 @@ A subset of 50–60 training images was used to validate the pipeline during dev
 
 **b13-cliniscan/**
 
-b13-cliniscan/
+```b13-cliniscan/
 │
 ├── 📁 data/
 │ ├── 📁 raw/
@@ -52,7 +52,7 @@ b13-cliniscan/
 ├── 📄 README.md
 ├── 📦 requirements.txt
 └── 📜 LICENSE
-
+```
 The repository follows a modular structure separating raw data, processed outputs, source code, and documentation.
 
 🔬 Preprocessing Overview
