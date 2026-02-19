@@ -1,0 +1,28 @@
+# Default training configuration
+
+# Model settings
+architecture: "resnet50"  # Options: resnet50, resnet101, efficientnet_b0, efficientnet_b7
+num_classes: 2
+pretrained: true
+
+# Training hyperparameters
+batch_size: 16
+epochs: 50
+optimizer: "adam"  # Options: adam, sgd, adamw
+learning_rate: 0.001
+weight_decay: 0.0001
+
+# Learning rate scheduler
+scheduler: "reduce_on_plateau"  # Options: step, reduce_on_plateau, cosine, null
+scheduler_params:
+  mode: "min"
+  factor: 0.1
+  patience: 5
+  min_lr: 0.000001
+
+# Early stopping
+early_stopping_patience: 10
+
+# Checkpointing
+checkpoint_dir: "checkpoints"
+save_best_only: true

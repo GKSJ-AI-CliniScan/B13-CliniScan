@@ -1,0 +1,18 @@
+# Default preprocessing configuration
+
+target_size: [512, 512]
+normalization_method: "minmax"  # Options: "minmax", "zscore"
+
+# CLAHE settings
+apply_clahe: true
+clahe_clip_limit: 2.0
+clahe_tile_size: 8
+
+# Denoising settings
+denoise_method: "gaussian"  # Options: "gaussian", "median", null
+denoise_kernel_size: 3
+
+# Border and padding
+crop_borders: true
+border_threshold: 10
+padding_mode: "constant"  # Options: "constant", "edge"

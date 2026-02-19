@@ -1,0 +1,12 @@
+# Default augmentation configuration for medical images
+
+horizontal_flip_prob: 0.5
+rotation_range: [-10, 10]  # degrees
+rotation_prob: 0.3
+contrast_range: [0.8, 1.2]
+contrast_prob: 0.3
+zoom_range: [0.9, 1.1]
+zoom_prob: 0.2
+elastic_alpha: 50.0
+elastic_sigma: 5.0
+elastic_prob: 0.1
