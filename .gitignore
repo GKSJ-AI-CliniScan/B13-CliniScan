@@ -1,16 +1,34 @@
-# Ignore dataset
-data/raw/
-data/processed/
+# Large training image dataset (5000 images - too heavy)
+data/processed/*.png
+data/train/
+data/yolo_dataset/
 
-# Ignore large files
+# Large medical image formats
 *.dicom
 *.dcm
-*.png
-*.jpg
 
-# Python
+# Trained model weights (heavy files)
+*.pt
+*.pth
+*.onnx
+
+# Python cache
 __pycache__/
 *.pyc
+*.py[cod]
+*.pyo
 
-# OS
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+
+# Environment files
+.env
+
+# Operating system files
 .DS_Store
+Thumbs.db
