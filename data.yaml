@@ -1,0 +1,21 @@
+train: vinbigdata_yolo_preprocessed/train
+val: vinbigdata_yolo_preprocessed/val
+
+nc: 14
+names:
+  [
+    "Aortic enlargement",
+    "Atelectasis",
+    "Calcification",
+    "Cardiomegaly",
+    "Consolidation",
+    "ILD",
+    "Infiltration",
+    "Lung Opacity",
+    "Nodule/Mass",
+    "Other lesion",
+    "Pleural effusion",
+    "Pleural thickening",
+    "Pneumothorax",
+    "Pulmonary fibrosis",
+  ]

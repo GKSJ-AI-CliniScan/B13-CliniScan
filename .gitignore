@@ -1,0 +1,4 @@
+vinbigdata_yolo_preprocessed/
+__pycache__/
+yolov8n.pt
+cliniscanpreprocess.ipynb
