@@ -1,28 +1,62 @@
-import os
-import shutil
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras import layers, models
 
-images_path = r"D:\Module_2\dataset\images"
-labels_path = r"D:\Module_2\dataset\labels"
+data_dir = "D:/Module_2/classification/data"
 
-normal_dir = r"D:\Module_2\classification\data\normal"
-abnormal_dir = r"D:\Module_2\classification\data\abnormal"
+img_size = 224
+batch_size = 16
 
-os.makedirs(normal_dir, exist_ok=True)
-os.makedirs(abnormal_dir, exist_ok=True)
+datagen = ImageDataGenerator(
+    rescale=1./255,
+    validation_split=0.2
+)
 
-for img in os.listdir(images_path):
+train_data = datagen.flow_from_directory(
+    data_dir,
+    target_size=(img_size, img_size),
+    batch_size=batch_size,
+    class_mode="binary",
+    subset="training"
+)
 
-    img_path = os.path.join(images_path, img)
+val_data = datagen.flow_from_directory(
+    data_dir,
+    target_size=(img_size, img_size),
+    batch_size=batch_size,
+    class_mode="binary",
+    subset="validation"
+)
 
-    label_file = img.replace(".png", ".txt")
-    label_path = os.path.join(labels_path, label_file)
+model = models.Sequential([
+    layers.Conv2D(32,(3,3),activation="relu",input_shape=(224,224,3)),
+    layers.MaxPooling2D(),
 
-    if os.path.exists(label_path):
+    layers.Conv2D(64,(3,3),activation="relu"),
+    layers.MaxPooling2D(),
 
-        if os.path.getsize(label_path) == 0:
-            shutil.copy(img_path, normal_dir)
+    layers.Conv2D(128,(3,3),activation="relu"),
+    layers.MaxPooling2D(),
 
-        else:
-            shutil.copy(img_path, abnormal_dir)
+    layers.Flatten(),
+    layers.Dense(128,activation="relu"),
+    layers.Dense(1,activation="sigmoid")
+])
 
-print("Dataset prepared successfully!")
+model.compile(
+    optimizer="adam",
+    loss="binary_crossentropy",
+    metrics=["accuracy"]
+)
+
+model.summary()
+
+history = model.fit(
+    train_data,
+    validation_data=val_data,
+    epochs=10
+)
+
+model.save("xray_classifier.h5")
+
+print("Model saved!")
