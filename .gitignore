@@ -5,3 +5,4 @@ yolo_output/**/epoch*.pt
 yolo_output/**/last.pt
 __pycache__/
 .ipynb_checkpoints/
+!docs/*.pdf
