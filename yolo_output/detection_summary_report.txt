@@ -1,0 +1,38 @@
+CliniScan — Object Detection Model Summary Report
+=================================================
+Model Used       : YOLOv8s (pretrained on COCO)
+Task             : Multi-class bounding box detection
+Dataset          : VinBigData Chest X-ray (5000 images subset)
+Classes          : 14 abnormality types
+
+Hyperparameters
+---------------
+Image size       : 224x224
+Epochs           : 30
+Batch size       : 8
+Optimizer        : Adam
+Learning rate    : 0.001
+IoU threshold    : 0.5
+Conf threshold   : 0.25
+
+Augmentations Applied (Medical Safe)
+-------------------------------------
+Horizontal flip  : Yes (p=0.5)
+Rotation         : Yes (±10 degrees)
+Brightness adj   : Yes (±10%)
+Random scaling   : Yes (10%)
+Vertical flip    : No
+Mosaic/Mixup     : No
+Perspective warp : No
+
+Results
+-------
+mAP@50           : 0.0658
+mAP@50-95        : 0.0286
+Precision        : 0.3793
+Recall           : 0.0821
+
+Saved Files
+-----------
+best.pt          : C:\Users\Anshuman Sharma\Desktop\Project\B13-CliniScan\yolo_output\best.pt
+Training logs    : C:\Users\Anshuman Sharma\Desktop\Project\B13-CliniScan\yolo_output\yolov8s_cliniScan

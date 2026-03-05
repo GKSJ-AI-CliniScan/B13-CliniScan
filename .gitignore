@@ -1,0 +1,7 @@
+images3000_processed/
+dataset/images/
+yolo_labels/
+yolo_output/**/epoch*.pt
+yolo_output/**/last.pt
+__pycache__/
+.ipynb_checkpoints/
