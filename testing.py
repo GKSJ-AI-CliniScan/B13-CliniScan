@@ -1,7 +1,7 @@
 from pathlib import Path
 from collections import Counter
 
-LABELS_DIR = "dataset/labels/train"   # change if needed
+LABELS_DIR = "dataset/labels/train"  
 
 label_files = list(Path(LABELS_DIR).glob("*.txt"))
 
@@ -35,4 +35,5 @@ if total_images > 0:
 
 print("\nClass distribution:")
 for cls, count in class_counts.items():
+
     print(f"Class {cls}: {count}")
