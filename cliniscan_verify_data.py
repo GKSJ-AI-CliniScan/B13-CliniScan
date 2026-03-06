@@ -1,7 +1,3 @@
-"""
-CliniScan - Data Verification Script
-Run this BEFORE training to ensure your dataset is ready.
-"""
 
 import os
 import random
@@ -14,14 +10,11 @@ import matplotlib.patches as patches
 from PIL import Image
 
 
-# ─────────────────────────────────────────────
-# CONFIG  (edit these paths)
-# ─────────────────────────────────────────────
-IMAGES_DIR = "dataset/images/train"       # folder containing .jpg / .png files
-LABELS_DIR = "dataset/labels/train"       # folder containing .txt (YOLO) files
-IMG_SIZE   = (512, 512)             # expected (W, H)
-NUM_SAMPLE = 10                     # images to visualise
-# ─────────────────────────────────────────────
+IMAGES_DIR = "dataset/images/train"      
+LABELS_DIR = "dataset/labels/train"      
+IMG_SIZE   = (512, 512)             
+NUM_SAMPLE = 10                     
+
 
 
 def check_dataset(images_dir: str, labels_dir: str, expected_size: tuple):
@@ -34,7 +27,7 @@ def check_dataset(images_dir: str, labels_dir: str, expected_size: tuple):
     for img_path in img_paths:
         label_path = Path(labels_dir) / (img_path.stem + ".txt")
 
-        # Check label exists
+        # Check label 
         if not label_path.exists():
             missing_labels.append(img_path.name)
             continue
