@@ -1,28 +1,3 @@
-"""
-model_detection.py
-══════════════════════════════════════════════════════════════
-Primary model : Faster R-CNN  with ResNet-50 FPN v2 backbone
-Alternative   : Faster R-CNN  with MobileNet V3 (CPU fallback)
-
-Why ResNet-50 FPN?
-──────────────────
-• Feature Pyramid Network detects findings at multiple scales
-  (small nodules AND large effusions in the same image)
-• Pretrained on COCO → strong transfer to chest X-ray
-• Replaces only the box-predictor head; backbone stays frozen
-  for the first few layers
-
-Classes  (15 pathologies + 1 background = 16 total)
-──────────────────────────────────────────────────────
- 0  background          8  Nodule/Mass
- 1  Aortic enlargement  9  Other lesion
- 2  Atelectasis        10  Pleural effusion
- 3  Calcification      11  Pleural thickening
- 4  Cardiomegaly       12  Pneumothorax
- 5  Consolidation      13  Pulmonary fibrosis
- 6  ILD                14  No finding (rare boxes)
- 7  Infiltration       15  Lung Opacity
-"""
 
 import torchvision
 from torchvision.models.detection import (

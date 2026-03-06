@@ -1,30 +1,5 @@
 """
 datasetdetection.py
-══════════════════════════════════════════════════════════════
-Chest X-Ray Detection Dataset for Faster R-CNN
-
-Medical-safe augmentations (applied to TRAIN split only)
-─────────────────────────────────────────────────────────
-  ✔  Horizontal flip          (with box mirroring)
-  ✔  Small rotation ±10°      (with box update)
-  ✔  Brightness adjustment    (simulate exposure variation)
-  ✔  Contrast adjustment      (simulate kVp variation)
-  ✔  Mild Gaussian noise      (simulate sensor noise)
-  ✔  Random scaling  ±10%     (with box rescale)
-
-  ✘  Vertical flip            (anatomically wrong)
-  ✘  Large rotations          (distorts anatomy)
-  ✘  Perspective warp         (unrealistic)
-  ✘  Random erasing           (hides real findings)
-  ✘  Color transforms         (X-rays are greyscale)
-
-Other improvements vs original
-────────────────────────────────
-  • Degenerate boxes filtered at load time (not per-batch)
-  • Image cache  → loads all PNGs once into RAM (faster epochs)
-  • 'area' + 'iscrowd' fields required by mAP evaluator
-  • 'No finding' images kept as hard negatives
-  • MONOCHROME1 inversion guard (avoids inverted X-ray bug)
 """
 
 import os
