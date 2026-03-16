@@ -1,0 +1,5 @@
+experiment,backbone,lr,optimizer,epochs,unfreeze,best_auc,vs_baseline
+Exp2_AdamW,efficientnet_b0,0.0005,AdamW,12,0,0.9213,0.0355
+Exp1_Adam,efficientnet_b0,0.001,Adam,12,0,0.9104,0.0246
+Exp3_SGD,efficientnet_b0,0.01,SGD,12,0,0.9094,0.0236
+Exp4_DenseNet121,densenet121,0.001,Adam,12,0,0.8304,-0.0554

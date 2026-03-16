@@ -1,0 +1,9 @@
+{
+  "total": 750,
+  "correct": 561,
+  "fn": 161,
+  "fp": 28,
+  "accuracy": 0.748,
+  "most_missed": "Other lesion",
+  "most_fp": "Aortic enlargement"
+}

@@ -1,0 +1,61 @@
+CliniScan - Milestone 3  Classification Report
+==================================================
+Generated: 2026-03-13 01:01
+
+BASELINE (Milestone 2)
+  Model     : EfficientNet-B0
+  AUC-ROC   : 0.8858
+  F1-Score  : 0.3279
+
+BEST M3 RESULT
+  Experiment: Exp2_AdamW  (efficientnet_b0)
+  AUC-ROC  : 0.9193  (change: +0.0335)
+  F1-Score : 0.3457  (change: +0.0178)
+  Precision: 0.5050
+  Recall   : 0.3024
+
+ALL EXPERIMENTS (Task 1 + 3)
+      experiment        backbone     lr optimizer  best_auc  vs_baseline
+      Exp2_AdamW efficientnet_b0 0.0005     AdamW    0.9213       0.0355
+       Exp1_Adam efficientnet_b0 0.0010      Adam    0.9104       0.0246
+        Exp3_SGD efficientnet_b0 0.0100       SGD    0.9094       0.0236
+Exp4_DenseNet121     densenet121 0.0010      Adam    0.8304      -0.0554
+  Baseline M2: AUC=0.8858
+
+AUGMENTATIONS (Task 2)
+  NEW: CLAHE(p=0.4), GaussNoise(p=0.3), RandomCrop(p=0.3)
+  Kept: HFlip(p=0.5), Rotate+-10(p=0.5), Brightness(p=0.5)
+  Disabled: VertFlip, Perspective, ColorJitter
+
+PER-CLASS BREAKDOWN (Task 4)
+    Aortic enlargement           F1=0.8085  AUC=0.9711
+    Atelectasis                  F1=0.0000  AUC=0.8973
+    Calcification                F1=0.0000  AUC=0.8478
+    Cardiomegaly                 F1=0.8042  AUC=0.9769
+    Consolidation                F1=0.2000  AUC=0.9606
+    ILD                          F1=0.0800  AUC=0.9450
+    Infiltration                 F1=0.3333  AUC=0.9128
+    Lung Opacity                 F1=0.4960  AUC=0.9239
+    Nodule/Mass                  F1=0.1667  AUC=0.8878
+    Other lesion                 F1=0.1875  AUC=0.8999
+    Pleural effusion             F1=0.6863  AUC=0.9614
+    Pleural thickening           F1=0.5556  AUC=0.9272
+    Pneumothorax                 F1=0.0000  AUC=0.8447
+    Pulmonary fibrosis           F1=0.5224  AUC=0.9138
+
+ERROR ANALYSIS (Task 6)
+  Total: 750 | Correct: 561 (74.8%)
+  False Negatives: 161 | False Positives: 28
+  Most missed: Other lesion
+  Most FP    : Aortic enlargement
+  Patterns: rare classes, subtle findings, co-occurring conditions
+
+DELIVERABLES
+  milestone3_cls/plots/aug_comparison.png
+  milestone3_cls/plots/exp_all_metrics.png
+  milestone3_cls/plots/auc_bar.png
+  milestone3_cls/plots/per_class_metrics.png
+  milestone3_cls/plots/gradcam_multiclass.png
+  milestone3_cls/gradcam_grid.png  +  gradcam/ (12 heatmaps)
+  milestone3_cls/error/ (FN/FP grids + breakdown + confidence + summary.json)
+  milestone3_cls/experiment_results.csv

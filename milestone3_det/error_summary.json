@@ -1,0 +1,7 @@
+{
+  "tested": 50,
+  "no_detect": 40,
+  "normal_det": 8,
+  "over_detect": 2,
+  "best_model": "D2_LowLR"
+}
