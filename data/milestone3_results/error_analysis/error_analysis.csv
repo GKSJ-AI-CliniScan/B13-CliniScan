@@ -1,0 +1,15 @@
+Class,F1,True Positives,False Positives,False Negatives,Missed Rate
+Aortic enlargement,0.8467,116,30,12,0.094
+Atelectasis,0.0,0,0,10,1.0
+Calcification,0.0,0,0,15,1.0
+Cardiomegaly,0.7778,77,21,23,0.23
+Consolidation,0.0,0,0,15,1.0
+ILD,0.0,0,0,11,1.0
+Infiltration,0.0909,1,1,19,0.95
+Lung Opacity,0.4565,21,14,36,0.632
+Nodule/Mass,0.0,0,1,30,1.0
+Other lesion,0.0408,1,4,43,0.977
+Pleural effusion,0.375,12,7,33,0.733
+Pleural thickening,0.4789,34,33,41,0.547
+Pneumothorax,0.0,0,0,4,1.0
+Pulmonary fibrosis,0.3333,17,18,50,0.746

@@ -1,34 +1,61 @@
-# Large training image dataset (5000 images - too heavy)
+# ─────────────────────────────────────────────
+# CliniScan — B13 .gitignore
+# ─────────────────────────────────────────────
+
+# ── Dataset images (too large for git) ───────
 data/processed/*.png
 data/train/
-data/yolo_dataset/
+data/yolo_dataset/train/images/
+data/yolo_dataset/val/images/
 
-# Large medical image formats
+# Keep these PNG outputs (results & plots)
+!data/processed/sample_images.png
+!data/processed/class_distribution.png
+!data/processed/training_curves.png
+!data/milestone3_results/**/*.png
+!data/detection_results/*.png
+
+# ── Medical image formats ─────────────────────
 *.dicom
 *.dcm
 
-# Trained model weights (heavy files)
+# ── Model weights (heavy files) ──────────────
 *.pt
 *.pth
 *.onnx
 
-# Python cache
+# ── YOLO cache files ──────────────────────────
+*.cache
+
+# ── Python cache ──────────────────────────────
 __pycache__/
 *.pyc
 *.py[cod]
 *.pyo
+*.pyd
 
-# Jupyter checkpoints
+# ── Jupyter ───────────────────────────────────
 .ipynb_checkpoints/
 
-# Build artifacts
+# ── Build artifacts ───────────────────────────
 *.egg-info/
 dist/
 build/
+*.egg
 
-# Environment files
+# ── Environment files ─────────────────────────
 .env
+.venv/
+env/
+venv/
 
-# Operating system files
+# ── IDE files ─────────────────────────────────
+.vscode/settings.json
+.idea/
+*.suo
+*.user
+
+# ── Operating system files ────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini

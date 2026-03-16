@@ -1,0 +1,18 @@
+{
+  "classification": {
+    "best_model": "EfficientNet-B0 + AdamW + lr=0.0001",
+    "test_f1": 0.2429,
+    "test_auc": 0.9046,
+    "test_loss": 0.1585,
+    "vs_baseline_f1": "+0.046 improvement",
+    "vs_baseline_auc": "+0.020 improvement"
+  },
+  "detection": {
+    "best_model": "YOLOv8s + AdamW + lr=0.0005 + 20 epochs",
+    "map50": 0.1761,
+    "map5095": 0.079,
+    "precision": 0.3886,
+    "recall": 0.196,
+    "vs_baseline_map50": "+0.014 improvement"
+  }
+}

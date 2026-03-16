@@ -1,0 +1,4 @@
+Experiment,Best F1,Best AUC,Optimizer,LR,Winner
+ResNet50+Adam+0.001,0.1044,0.8549,Adam,0.001,
+ResNet50+AdamW+0.0001,0.2121,0.8807,AdamW,0.0001,
+EfficientNet+AdamW+0.0001,0.2742,0.8894,AdamW,0.0001,✅ Best
