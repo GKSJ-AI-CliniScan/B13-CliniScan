@@ -1,27 +1,36 @@
-# CliniScan – AI-based Chest X-ray Abnormality Detection
+# CliniScan – Chest X-ray Abnormality Detection
 
-## Project Overview
-This project builds a YOLO-based object detection model for detecting abnormalities in chest X-ray images using the VinBigData dataset.
+## Overview
+Two-stage deep learning system:
+1. ResNet18 classifier (Normal vs Abnormal)
+2. YOLOv8 detector (localization)
 
 ## Dataset
-- 15,000 chest X-ray images
-- 67,914 annotations
-- 14 abnormality classes
+VinDr-CXR dataset
 
-## Preprocessing Pipeline
-- DICOM → PNG conversion
-- Grayscale enforcement
-- Min-max normalization
-- CLAHE contrast enhancement
-- Gaussian denoising
-- Resize to 640x640
-- Bounding box scaling
-- YOLO label conversion
-- Train/validation split (80/20)
+## Experiments (Milestone-3)
+- Learning rate tuning
+- Data augmentation (Albumentations)
+- Transfer learning (DenseNet121)
+- YOLO threshold tuning
+- Grad-CAM visualization
 
-## Model
-YOLOv8 detection model.
+## Results
 
-## Status
-Preprocessing complete.
-Training phase in progress.
+### Classifier
+| Model | Accuracy |
+|------|------|
+ResNet18 | 0.95 |
+Augmented | 0.43 |
+DenseNet121 | 0.63 |
+
+### Detector
+| Metric | Value |
+|------|------|
+Precision | 0.55 |
+Recall | 0.37 |
+mAP50 | 0.41 |
+
+## Outputs
+- Detection examples in `/results`
+- Grad-CAM heatmaps
