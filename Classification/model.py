@@ -2,14 +2,15 @@ import torch.nn as nn
 import torchvision.models as models
 
 def get_model(num_classes):
+
     model = models.efficientnet_b0(weights="DEFAULT")
 
-    # Freeze all
+    # Freeze everything
     for param in model.parameters():
         param.requires_grad = False
 
-    # Unfreeze last feature block
-    for param in model.features[-1].parameters():
+    # Unfreeze last TWO blocks
+    for param in model.features[-2:].parameters():
         param.requires_grad = True
 
     # Replace classifier

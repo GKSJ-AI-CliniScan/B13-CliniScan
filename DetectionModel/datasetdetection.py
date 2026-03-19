@@ -1,6 +1,3 @@
-"""
-datasetdetection.py
-"""
 
 import os
 import random
@@ -12,16 +9,10 @@ import torch
 import torchvision.transforms.functional as TF
 from torch.utils.data import Dataset
 from PIL import Image
-
-
 # ══════════════════════════════════════════════════════════════
 # Medical-safe augmentation
 # ══════════════════════════════════════════════════════════════
 class MedicalAugment:
-    """
-    All spatial transforms keep bounding boxes in sync.
-    Applied only when augment=True (train split).
-    """
 
     def __call__(
         self, image: torch.Tensor, boxes: torch.Tensor
@@ -225,6 +216,11 @@ class ChestXrayDetectionDataset(Dataset):
         if self.augmentor is not None:
             image, boxes_t = self.augmentor(image, boxes_t)
 
+    # Remove invalid boxes after augmentation
+        if boxes_t.shape[0] > 0:
+            keep = (boxes_t[:,2] > boxes_t[:,0]) & (boxes_t[:,3] > boxes_t[:,1])
+            boxes_t = boxes_t[keep]
+            labels_t = labels_t[keep]
         # ── area + iscrowd  (required by mAP evaluator) ──────────
         if boxes_t.shape[0] > 0:
             area = (
