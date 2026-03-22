@@ -1,0 +1,4 @@
+data/
+models/
+*.pth
+*.pt
