@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CliniScan — AI Chest X-Ray Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:      #080c12;
+  --bg2:     #0d1420;
+  --bg3:     #111b2a;
+  --border:  #1c2d42;
+  --border2: #243548;
+  --text:    #c8d8e8;
+  --muted:   #5a7a95;
+  --accent:  #00c9ff;
+  --accent2: #0066cc;
+  --green:   #00e599;
+  --orange:  #ff8c42;
+  --red:     #ff4757;
+  --purple:  #a78bfa;
+  --mono:    'DM Mono', monospace;
+  --display: 'Syne', sans-serif;
+  --body:    'DM Sans', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:14px;min-height:100vh;display:flex}
+
+/* Sidebar */
+#sidebar{width:220px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh}
+.logo{padding:28px 20px 20px;border-bottom:1px solid var(--border)}
+.logo-mark{font-family:var(--display);font-size:22px;font-weight:800;color:var(--accent);letter-spacing:-0.5px}
+.logo-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase}
+.nav{padding:12px 0;flex:1}
+.nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:11px 20px;border:none;background:transparent;color:var(--muted);font-family:var(--body);font-size:13px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;text-align:left}
+.nav-btn:hover{color:var(--text);background:#0d1824}
+.nav-btn.active{color:var(--accent);background:#0a1929;border-left-color:var(--accent)}
+.nav-icon{font-size:15px;opacity:.8}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.7}
+
+/* Main */
+#main{flex:1;padding:32px 36px;overflow-y:auto}
+.page{display:none}
+.page.active{display:block}
+.page-title{font-family:var(--display);font-size:26px;font-weight:700;color:#e8f0f8;margin-bottom:6px;letter-spacing:-0.5px}
+.page-sub{color:var(--muted);font-size:13px;margin-bottom:28px}
+
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);font-family:var(--display);font-size:13px;font-weight:600;color:#e0eaf5;letter-spacing:.2px}
+.card-body{padding:18px}
+
+/* Grid helpers */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+/* Upload zone */
+.drop-zone{border:2px dashed var(--border2);border-radius:12px;padding:44px 24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg3)}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--accent);background:#071525}
+.drop-icon{font-size:38px;margin-bottom:12px;opacity:.7}
+.drop-text{color:var(--muted);font-size:13px}
+.drop-hint{font-size:11px;color:#3a5570;margin-top:5px}
+
+/* Buttons */
+.btn{padding:11px 20px;border:none;border-radius:8px;font-family:var(--body);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.btn-primary{background:var(--accent2);color:#fff}
+.btn-primary:hover{background:#0077ee}
+.btn-primary:disabled{background:#1a2d40;color:var(--muted);cursor:not-allowed}
+.btn-outline{background:transparent;color:var(--accent);border:1px solid var(--accent2)}
+.btn-outline:hover{background:#071525}
+.btn-green{background:#004d33;color:var(--green);border:1px solid #006644}
+.btn-green:hover{background:#005c3d}
+.btn-full{width:100%}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border)}
+.tab{padding:10px 16px;border:none;background:transparent;color:var(--muted);font-size:12px;font-family:var(--body);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* Confidence bars */
+.disease-card{background:var(--bg3);border-radius:8px;padding:12px 14px;margin-bottom:8px;border:1px solid transparent}
+.disease-card.detected{border-color:#1a3d5c}
+.disease-name{font-size:12px;font-weight:500;color:#c8d8e8;margin-bottom:2px}
+.disease-desc{font-size:11px;color:var(--muted);margin-bottom:7px}
+.bar-row{display:flex;align-items:center;gap:10px}
+.bar-track{flex:1;height:5px;background:var(--border2);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .6s}
+.conf-val{font-family:var(--mono);font-size:11px;min-width:38px;text-align:right}
+
+/* Stat cards */
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px}
+.stat-num{font-family:var(--display);font-size:28px;font-weight:700;margin-bottom:3px}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-family:var(--mono)}
+
+/* Image viewer */
+.img-view{background:#030912;border-radius:8px;min-height:260px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.img-view img{max-width:100%;max-height:340px;object-fit:contain;border-radius:4px}
+
+/* Progress bar */
+.progress-wrap{background:var(--border);border-radius:4px;height:6px;margin:12px 0}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:4px;transition:width .3s}
+
+/* Table */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{padding:9px 12px;text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:11px;letter-spacing:.5px;text-transform:uppercase}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--border)}
+.tbl tr:hover td{background:#0a1520}
+
+/* Badge */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;font-family:var(--mono);letter-spacing:.4px}
+.badge-green{background:#003322;color:var(--green)}
+.badge-red{background:#2a0a0a;color:var(--red)}
+.badge-orange{background:#2a1500;color:var(--orange)}
+.badge-blue{background:#001233;color:var(--accent)}
+
+/* Experiment bar */
+.exp-row{margin-bottom:14px}
+.exp-meta{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+.exp-track{height:8px;background:var(--border);border-radius:4px;position:relative}
+.exp-fill{height:100%;border-radius:4px;transition:width .8s .1s}
+.exp-baseline{position:absolute;top:0;width:2px;height:100%;background:var(--muted);opacity:.6}
+
+/* Augmentation tags */
+.aug-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-size:11px;margin:3px;font-family:var(--mono)}
+.aug-new{background:#003322;color:var(--green);border:1px solid #004433}
+.aug-kept{background:#001233;color:var(--accent);border:1px solid #002255}
+.aug-off{background:#2a0a0a;color:var(--red);border:1px solid #440000}
+
+/* Misc */
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+.label{font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+.slider-wrap{margin-bottom:16px}
+.slider-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.warning-box{background:#1a0e00;border:1px solid #3d2800;border-radius:8px;padding:10px 14px;font-size:11px;color:#a06020;margin-top:12px;line-height:1.6}
+.empty-state{text-align:center;padding:60px;color:var(--muted)}
+.empty-icon{font-size:40px;margin-bottom:14px;opacity:.5}
+.scrollable{overflow-y:auto;max-height:480px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="logo">
+    <div class="logo-mark">CliniScan</div>
+    <div class="logo-sub">Chest X-Ray AI</div>
+  </div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="showPage('single')" id="nav-single">
+      <span class="nav-icon">🫁</span> Single Analysis
+    </button>
+    <button class="nav-btn" onclick="showPage('batch')" id="nav-batch">
+      <span class="nav-icon">📂</span> Batch Processing
+    </button>
+    <button class="nav-btn" onclick="showPage('dashboard')" id="nav-dashboard">
+      <span class="nav-icon">📊</span> Model Dashboard
+    </button>
+    <button class="nav-btn" onclick="showPage('history')" id="nav-history">
+      <span class="nav-icon">🕐</span> History
+    </button>
+  </div>
+  <div class="sidebar-footer">
+    <div>EfficientNet-B0</div>
+    <div>YOLOv8s · 14 classes</div>
+    <div style="color:#2a4a60;margin-top:4px">AUC 0.9213</div>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+
+<!-- ═══════════════ PAGE: SINGLE ═══════════════ -->
+<div class="page active" id="page-single">
+  <div class="page-title">Single X-Ray Analysis</div>
+  <div class="page-sub">Upload one chest X-ray — get disease classification, bounding box detection, and Grad-CAM heatmap</div>
+
+  <div class="g2" style="align-items:start">
+    <!-- Left column -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Upload -->
+      <div class="card">
+        <div class="card-head">Upload X-Ray</div>
+        <div class="card-body">
+          <div class="drop-zone" id="drop-single"
+               ondrop="handleDrop(event,'single')"
+               ondragover="event.preventDefault();this.classList.add('drag')"
+               ondragleave="this.classList.remove('drag')"
+               onclick="document.getElementById('file-single').click()">
+            <div class="drop-icon" id="drop-icon-single">🫁</div>
+            <div class="drop-text" id="drop-text-single">Drop X-ray here or click to browse</div>
+            <div class="drop-hint">PNG · JPG · Grayscale chest X-ray</div>
+          </div>
+          <input type="file" id="file-single" accept="image/*" style="display:none"
+                 onchange="onFileSelect(this.files[0],'single')"/>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="card">
+        <div class="card-head">Settings</div>
+        <div class="card-body">
+          <div class="slider-wrap">
+            <div class="slider-row">
+              <span class="label">Detection Threshold</span>
+              <span style="font-family:var(--mono);font-size:12px;color:var(--accent)" id="thresh-val">0.50</span>
+            </div>
+            <input type="range" min="0.1" max="0.9" step="0.05" value="0.5" id="threshold"
+                   oninput="document.getElementById('thresh-val').textContent=parseFloat(this.value).toFixed(2)"/>
+            <div style="font-size:11px;color:var(--muted);margin-top:5px">Low = more sensitive · High = more precise</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="run-det" checked style="accent-color:var(--accent)"/>
+              Run bounding box detection
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="run-cam" checked style="accent-color:var(--accent)"/>
+              Generate Grad-CAM heatmap
+            </label>
+          </div>
+
+          <button class="btn btn-primary btn-full" id="btn-analyze"
+                  onclick="analyzeSingle()" disabled>Analyze X-Ray</button>
+
+          <button class="btn btn-outline btn-full" id="btn-report"
+                  onclick="downloadReport()" disabled
+                  style="margin-top:8px;display:none">⬇ Download PDF Report</button>
+        </div>
+      </div>
+
+      <!-- Image tabs -->
+      <div class="card" id="img-card" style="display:none">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('original')">Original</button>
+          <button class="tab" onclick="switchTab('detection')">Detections</button>
+          <button class="tab" onclick="switchTab('gradcam')">Grad-CAM</button>
+        </div>
+        <div class="card-body" style="padding:12px">
+          <div class="img-view" id="img-view">
+            <img id="img-display" src="" alt="X-Ray"/>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:8px;font-family:var(--mono)" id="img-meta"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column: results -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card" id="result-card">
+        <div class="card-head">Analysis Results</div>
+        <div class="card-body">
+          <div class="empty-state" id="result-empty">
+            <div class="empty-icon">🔬</div>
+            <div>Upload an X-ray and click Analyze</div>
+          </div>
+          <div id="result-content" style="display:none">
+            <!-- Findings summary -->
+            <div id="findings-summary" style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border2)"></div>
+            <!-- Disease list -->
+            <div id="disease-list"></div>
+            <button style="background:transparent;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:6px 0"
+                    onclick="toggleAllClasses(this)">Show all 14 classes ▼</button>
+            <div id="all-classes" style="display:none;margin-top:10px"></div>
+            <!-- Bounding boxes -->
+            <div id="boxes-section" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+              <div class="label" style="margin-bottom:10px">Bounding Box Detections</div>
+              <div id="boxes-list"></div>
+            </div>
+            <div class="warning-box">⚠ For research use only. Not a clinical diagnosis. Always consult a qualified radiologist.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PAGE: BATCH ═══════════════ -->
+<div class="page" id="page-batch">
+  <div class="page-title">Batch Processing</div>
+  <div class="page-sub">Upload multiple X-rays at once — results table and CSV export</div>
+
+  <div class="g2" style="margin-bottom:20px;align-items:start">
+    <div class="card">
+      <div class="card-head">Upload X-Rays</div>
+      <div class="card-body">
+        <div class="drop-zone" id="drop-batch"
+             ondrop="handleDrop(event,'batch')"
+             ondragover="event.preventDefault();this.classList.add('drag')"
+             ondragleave="this.classList.remove('drag')"
+             onclick="document.getElementById('file-batch').click()">
+          <div class="drop-icon">📂</div>
+          <div class="drop-text" id="batch-drop-text">Drop multiple X-rays here</div>
+          <div class="drop-hint">Select multiple images at once</div>
+        </div>
+        <input type="file" id="file-batch" accept="image/*" multiple style="display:none"
+               onchange="onBatchFiles(this.files)"/>
+        <div id="batch-file-list" style="margin-top:12px;max-height:140px;overflow-y:auto"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">Settings</div>
+      <div class="card-body">
+        <div class="slider-wrap">
+          <div class="slider-row">
+            <span class="label">Threshold</span>
+            <span style="font-family:var(--mono);font-size:12px;color:var(--accent)" id="batch-thresh-val">0.50</span>
+          </div>
+          <input type="range" min="0.1" max="0.9" step="0.05" value="0.5" id="batch-threshold"
+                 oninput="document.getElementById('batch-thresh-val').textContent=parseFloat(this.value).toFixed(2)"/>
+        </div>
+        <button class="btn btn-primary btn-full" id="btn-batch" onclick="runBatch()" disabled>
+          Analyze All Images
+        </button>
+        <button class="btn btn-green btn-full" id="btn-csv" onclick="exportCSV()"
+                style="margin-top:8px;display:none">⬇ Export CSV</button>
+        <div id="batch-progress-wrap" style="display:none">
+          <div class="progress-wrap"><div class="progress-bar" id="batch-progress" style="width:0%"></div></div>
+          <div style="font-size:11px;color:var(--muted)" id="batch-progress-text">Processing...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="g4" id="batch-stats" style="display:none;margin-bottom:20px">
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--accent)" id="b-total">0</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--green)" id="b-ok">0</div>
+      <div class="stat-label">Processed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--orange)" id="b-findings">0</div>
+      <div class="stat-label">With Findings</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--red)" id="b-errors">0</div>
+      <div class="stat-label">Errors</div>
+    </div>
+  </div>
+
+  <!-- Results table -->
+  <div class="card" id="batch-results-card" style="display:none">
+    <div class="card-head">Results</div>
+    <div class="card-body" style="padding:0">
+      <div class="scrollable">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>File</th><th>Status</th><th>Findings</th><th>Top Confidence</th><th>Detected Diseases</th>
+            </tr>
+          </thead>
+          <tbody id="batch-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PAGE: DASHBOARD ═══════════════ -->
+<div class="page" id="page-dashboard">
+  <div class="page-title">Model Dashboard</div>
+  <div class="page-sub">Milestone 3 training results — experiment comparison, augmentations, model specs</div>
+
+  <!-- Top stats -->
+  <div class="g4" style="margin-bottom:24px">
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--accent)">0.9213</div>
+      <div class="stat-label">Best AUC-ROC</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--green)">+3.55%</div>
+      <div class="stat-label">AUC Improvement</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--orange)">0.0592</div>
+      <div class="stat-label">Best mAP@50</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--purple)">14</div>
+      <div class="stat-label">Disease Classes</div>
+    </div>
+  </div>
+
+  <div class="g2" style="margin-bottom:20px">
+    <!-- Classification experiments -->
+    <div class="card">
+      <div class="card-head">Classification Experiments — AUC-ROC</div>
+      <div class="card-body">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:14px;font-family:var(--mono)">
+          Gray marker = M2 baseline (0.8858)
+        </div>
+        <div id="cls-exp-bars"></div>
+      </div>
+    </div>
+
+    <!-- Detection experiments -->
+    <div class="card">
+      <div class="card-head">Detection Experiments — mAP@50</div>
+      <div class="card-body">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:14px;font-family:var(--mono)">
+          Gray marker = M2 baseline (0.0658) · Prec / Rec shown right
+        </div>
+        <div id="det-exp-bars"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <!-- Augmentations -->
+    <div class="card">
+      <div class="card-head">M3 Augmentations (Albumentations)</div>
+      <div class="card-body">
+        <div style="margin-bottom:14px">
+          <span class="aug-tag aug-new">NEW</span>
+          <span class="aug-tag aug-kept">KEPT</span>
+          <span class="aug-tag aug-off">DISABLED</span>
+        </div>
+        <div id="aug-grid"></div>
+      </div>
+    </div>
+
+    <!-- Model details -->
+    <div class="card">
+      <div class="card-head">Model Specifications</div>
+      <div class="card-body">
+        <div id="model-specs"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PAGE: HISTORY ═══════════════ -->
+<div class="page" id="page-history">
+  <div class="page-title">History</div>
+  <div class="page-sub">Analyses from this session</div>
+  <div id="history-list">
+    <div class="empty-state">
+      <div class="empty-icon">🕐</div>
+      <div style="color:var(--muted)">No analyses yet — upload an X-ray to get started</div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+const API = 'http://127.0.0.1:8000'
+let singleFile = null
+let batchFiles = []
+let batchResults = []
+let analysisHistory = []
+let imgData = {}   // {original, detection, gradcam}
+let activeTab = 'original'
+
+// ── Navigation ───────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'))
+  document.getElementById('page-' + id).classList.add('active')
+  document.getElementById('nav-' + id).classList.add('active')
+  if (id === 'dashboard') buildDashboard()
+  if (id === 'history') renderHistory()
+}
+
+// ── File handling ────────────────────────────────────────
+function handleDrop(e, type) {
+  e.preventDefault()
+  document.getElementById('drop-' + type).classList.remove('drag')
+  const files = e.dataTransfer.files
+  if (type === 'single' && files[0]) onFileSelect(files[0], 'single')
+  if (type === 'batch' && files.length) onBatchFiles(files)
+}
+
+function onFileSelect(file, type) {
+  if (!file || !file.type.startsWith('image/')) return
+  singleFile = file
+  document.getElementById('drop-text-single').textContent = file.name
+  document.getElementById('drop-icon-single').textContent = '✅'
+  document.getElementById('btn-analyze').disabled = false
+  // Preview
+  const reader = new FileReader()
+  reader.onload = e => {
+    imgData = { original: e.target.result, detection: null, gradcam: null }
+    showImgCard()
+    switchTab('original')
+  }
+  reader.readAsDataURL(file)
+}
+
+function onBatchFiles(files) {
+  batchFiles = Array.from(files).filter(f => f.type.startsWith('image/'))
+  document.getElementById('batch-drop-text').textContent = batchFiles.length + ' images selected'
+  document.getElementById('btn-batch').disabled = batchFiles.length === 0
+  const list = document.getElementById('batch-file-list')
+  list.innerHTML = batchFiles.map(f =>
+    `<div style="font-size:11px;color:var(--muted);padding:3px 0;border-bottom:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</div>`
+  ).join('')
+}
+
+// ── Image display ────────────────────────────────────────
+function showImgCard() {
+  document.getElementById('img-card').style.display = 'block'
+}
+
+function switchTab(tab) {
+  activeTab = tab
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+  event && event.target && event.target.classList.add('active')
+  // find tab button by text
+  document.querySelectorAll('.tab').forEach(t => {
+    if (t.textContent.toLowerCase().includes(tab)) t.classList.add('active')
+  })
+  const display = document.getElementById('img-display')
+  const meta    = document.getElementById('img-meta')
+  if (tab === 'original' && imgData.original) {
+    display.src = imgData.original; meta.textContent = 'Original X-ray'
+  } else if (tab === 'detection') {
+    if (imgData.detection) {
+      display.src = 'data:image/png;base64,' + imgData.detection
+      meta.textContent = 'YOLOv8s bounding box predictions'
+    } else {
+      display.src = imgData.original || ''
+      meta.textContent = 'No detections found (try lowering confidence threshold)'
+    }
+  } else if (tab === 'gradcam') {
+    if (imgData.gradcam) {
+      display.src = 'data:image/png;base64,' + imgData.gradcam
+      meta.textContent = 'Grad-CAM — red = high model attention regions'
+    } else {
+      display.src = imgData.original || ''
+      meta.textContent = 'Grad-CAM not available (grad-cam library required)'
+    }
+  }
+}
+
+// ── Single analysis ──────────────────────────────────────
+async function analyzeSingle() {
+  if (!singleFile) return
+  const btn = document.getElementById('btn-analyze')
+  btn.disabled = true; btn.textContent = 'Analyzing...'
+  document.getElementById('result-empty').style.display = 'none'
+  document.getElementById('result-content').style.display = 'none'
+
+  const threshold   = parseFloat(document.getElementById('threshold').value)
+  const runDet      = document.getElementById('run-det').checked
+  const runCam      = document.getElementById('run-cam').checked
+  const fd = new FormData()
+  fd.append('file', singleFile)
+
+  try {
+    const res  = await fetch(`${API}/predict?threshold=${threshold}&run_detection=${runDet}&run_gradcam=${runCam}`,
+                              { method:'POST', body:fd })
+    if (!res.ok) throw new Error('API error: ' + res.status)
+    const data = await res.json()
+
+    // Update images
+    if (data.images.original)  imgData.original  = 'data:image/png;base64,' + data.images.original
+    if (data.images.detection) imgData.detection = data.images.detection
+    if (data.images.gradcam)   imgData.gradcam   = data.images.gradcam
+    showImgCard(); switchTab('original')
+
+    renderResults(data, threshold)
+    addToHistory(data)
+
+    document.getElementById('btn-report').style.display = 'block'
+    document.getElementById('btn-report').disabled = false
+  } catch(e) {
+    document.getElementById('result-content').innerHTML =
+      `<div style="color:var(--red);padding:20px;font-size:13px">
+        Error: ${e.message}<br><br>
+        Make sure the backend is running:<br>
+        <code style="font-family:var(--mono);font-size:11px">python app.py</code>
+      </div>`
+    document.getElementById('result-content').style.display = 'block'
+  } finally {
+    btn.disabled = false; btn.textContent = 'Analyze X-Ray'
+  }
+}
+
+const DISEASE_INFO = {
+  'Cardiomegaly':       {color:'#ff4757',desc:'Enlarged heart — possible heart failure'},
+  'Pleural effusion':   {color:'#ff8c42',desc:'Fluid buildup around the lungs'},
+  'Pneumothorax':       {color:'#ffd700',desc:'Collapsed lung — can be life-threatening'},
+  'Nodule/Mass':        {color:'#a78bfa',desc:'Abnormal tissue growth requiring follow-up'},
+  'Consolidation':      {color:'#00c9ff',desc:'Lung airspace filled with fluid or cells'},
+  'Atelectasis':        {color:'#00e599',desc:'Partial or complete lung collapse'},
+  'Infiltration':       {color:'#3dc9b0',desc:'Substance in lung tissue — often infection'},
+  'Aortic enlargement': {color:'#ff6b6b',desc:'Enlarged aorta — cardiovascular risk'},
+  'ILD':                {color:'#c77dff',desc:'Interstitial lung disease — fibrosis'},
+  'Lung Opacity':       {color:'#74b9ff',desc:'Hazy areas indicating abnormality'},
+  'Calcification':      {color:'#a29bfe',desc:'Calcium deposits in lung tissue'},
+  'Pleural thickening': {color:'#fd79a8',desc:'Thickening of lung lining'},
+  'Pulmonary fibrosis': {color:'#e17055',desc:'Scarring of lung tissue'},
+  'Other lesion':       {color:'#636e72',desc:'Unclassified finding'},
+}
+
+function renderResults(data, threshold) {
+  const detected = data.detected || []
+  const all      = [...data.predictions].sort((a,b) => b.confidence - a.confidence)
+
+  // Summary
+  const sumEl = document.getElementById('findings-summary')
+  if (detected.length === 0) {
+    sumEl.innerHTML = `<div style="color:var(--green);font-weight:600;font-size:13px">✅ No significant findings detected</div>
+      <div style="color:var(--muted);font-size:12px;margin-top:4px">Image appears normal at threshold ${threshold.toFixed(2)}</div>`
+  } else {
+    sumEl.innerHTML = `<div style="color:var(--red);font-weight:600;font-size:13px">⚠ ${detected.length} condition${detected.length>1?'s':''} detected</div>
+      <div style="color:var(--muted);font-size:12px;margin-top:4px">Threshold: ${threshold.toFixed(2)} · Analyzed in ${data.time_ms}ms</div>`
+  }
+
+  // Detected diseases
+  const listEl = document.getElementById('disease-list')
+  listEl.innerHTML = detected.map(d => {
+    const info = DISEASE_INFO[d.disease] || {color:'#58a6ff',desc:''}
+    const pct  = Math.round(d.confidence * 100)
+    return `<div class="disease-card detected">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+        <div class="disease-name" style="color:${info.color}">${d.disease}</div>
+        <div style="font-family:var(--mono);font-size:12px;font-weight:600;color:${info.color}">${pct}%</div>
+      </div>
+      ${info.desc ? `<div class="disease-desc">${info.desc}</div>` : ''}
+      <div class="bar-row">
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${info.color}"></div></div>
+      </div>
+    </div>`
+  }).join('')
+
+  // All classes (hidden by default)
+  const allEl = document.getElementById('all-classes')
+  allEl.innerHTML = all.map(d => {
+    const info = DISEASE_INFO[d.disease] || {color:'var(--accent)',desc:''}
+    const pct  = Math.round(d.confidence * 100)
+    const active = d.confidence >= threshold
+    return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;color:${active ? info.color : 'var(--muted)'};flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.disease}</div>
+      <div class="bar-track" style="width:90px"><div class="bar-fill" style="width:${pct}%;background:${active ? info.color : 'var(--border2)'}"></div></div>
+      <div style="font-family:var(--mono);font-size:11px;color:${active ? info.color : 'var(--muted)'};min-width:34px;text-align:right">${pct}%</div>
+    </div>`
+  }).join('')
+
+  // Bounding boxes
+  if (data.boxes && data.boxes.length > 0) {
+    document.getElementById('boxes-section').style.display = 'block'
+    document.getElementById('boxes-list').innerHTML = data.boxes.map(b =>
+      `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <span style="color:var(--text)">${b.class}</span>
+        <span style="font-family:var(--mono);color:var(--accent)">${Math.round(b.conf*100)}%</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--muted)">(${b.x1},${b.y1})→(${b.x2},${b.y2})</span>
+      </div>`
+    ).join('')
+  }
+
+  document.getElementById('result-content').style.display = 'block'
+  document.getElementById('result-empty').style.display   = 'none'
+}
+
+function toggleAllClasses(btn) {
+  const el = document.getElementById('all-classes')
+  const shown = el.style.display !== 'none'
+  el.style.display = shown ? 'none' : 'block'
+  btn.textContent  = shown ? 'Show all 14 classes ▼' : 'Hide ▲'
+}
+
+// ── PDF Report ───────────────────────────────────────────
+async function downloadReport() {
+  if (!singleFile) return
+  const fd = new FormData(); fd.append('file', singleFile)
+  const res = await fetch(`${API}/report`, { method:'POST', body:fd })
+  if (!res.ok) { alert('Report generation failed'); return }
+  const blob = await res.blob()
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href = url; a.download = 'cliniscan_report.pdf'; a.click()
+  URL.revokeObjectURL(url)
+}
+
+// ── Batch ────────────────────────────────────────────────
+async function runBatch() {
+  if (!batchFiles.length) return
+  const threshold = parseFloat(document.getElementById('batch-threshold').value)
+  const btn = document.getElementById('btn-batch')
+  btn.disabled = true; btn.textContent = 'Processing...'
+  document.getElementById('batch-progress-wrap').style.display = 'block'
+  document.getElementById('batch-stats').style.display = 'none'
+  document.getElementById('batch-results-card').style.display = 'none'
+
+  batchResults = []
+  const CHUNK = 10
+  for (let i = 0; i < batchFiles.length; i += CHUNK) {
+    const chunk = batchFiles.slice(i, i + CHUNK)
+    const fd    = new FormData()
+    chunk.forEach(f => fd.append('files', f))
+    try {
+      const res  = await fetch(`${API}/batch?threshold=${threshold}`, { method:'POST', body:fd })
+      const data = await res.json()
+      batchResults = [...batchResults, ...data.results]
+    } catch(e) {
+      chunk.forEach(f => batchResults.push({filename:f.name,status:'error',error:e.message}))
+    }
+    const pct = Math.round(((i + chunk.length) / batchFiles.length) * 100)
+    document.getElementById('batch-progress').style.width = pct + '%'
+    document.getElementById('batch-progress-text').textContent = `${Math.min(i+CHUNK,batchFiles.length)} / ${batchFiles.length} processed`
+  }
+
+  renderBatchResults()
+  btn.disabled = false; btn.textContent = 'Analyze All Images'
+  document.getElementById('batch-progress-wrap').style.display = 'none'
+  document.getElementById('btn-csv').style.display = 'block'
+}
+
+function renderBatchResults() {
+  const ok       = batchResults.filter(r => r.status === 'success')
+  const findings = ok.filter(r => r.findings > 0)
+  const errors   = batchResults.filter(r => r.status === 'error')
+
+  document.getElementById('b-total').textContent    = batchResults.length
+  document.getElementById('b-ok').textContent       = ok.length
+  document.getElementById('b-findings').textContent = findings.length
+  document.getElementById('b-errors').textContent   = errors.length
+  document.getElementById('batch-stats').style.display = 'grid'
+
+  document.getElementById('batch-table-body').innerHTML = batchResults.map(r =>
+    `<tr>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.filename}</td>
+      <td><span class="badge ${r.status==='success'?'badge-green':'badge-red'}">${r.status}</span></td>
+      <td style="color:${r.findings>0?'var(--orange)':'var(--muted)'}">${r.findings||0}</td>
+      <td style="font-family:var(--mono);font-size:11px">${r.top_conf?Math.round(r.top_conf*100)+'%':'—'}</td>
+      <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)">
+        ${(r.detected||[]).join(', ')||'None'}
+      </td>
+    </tr>`
+  ).join('')
+  document.getElementById('batch-results-card').style.display = 'block'
+}
+
+function exportCSV() {
+  const headers = ['filename','status','findings','top_conf','detected_diseases']
+  const rows    = batchResults.map(r => [
+    `"${r.filename}"`, r.status, r.findings||0, r.top_conf||0,
+    `"${(r.detected||[]).join(' | ')}"`,
+  ])
+  const csv  = [headers, ...rows].map(r => r.join(',')).join('\n')
+  const blob = new Blob([csv], {type:'text/csv'})
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href = url; a.download = 'cliniscan_batch.csv'; a.click()
+  URL.revokeObjectURL(url)
+}
+
+// ── Dashboard ────────────────────────────────────────────
+async function buildDashboard() {
+  let info
+  try {
+    const res = await fetch(`${API}/model-info`)
+    info = await res.json()
+  } catch(e) {
+    document.getElementById('cls-exp-bars').innerHTML =
+      `<div style="color:var(--red);font-size:12px">Backend not running — start with: python app.py</div>`
+    return
+  }
+
+  // Classification experiment bars
+  const CLS_COLORS = ['#00c9ff','#00e599','#ff8c42','#a78bfa','#74b9ff']
+  const CLS_BASE   = 0.8858
+  const cls_el = document.getElementById('cls-exp-bars')
+  cls_el.innerHTML = info.cls_experiments.map((e, i) => {
+    const pct  = (e.auc / 1.0) * 100
+    const bpct = (CLS_BASE / 1.0) * 100
+    const diff = e.auc - CLS_BASE
+    const color= e.name === 'Baseline M2' ? 'var(--muted)' : CLS_COLORS[i % CLS_COLORS.length]
+    const diffStr = e.name === 'Baseline M2' ? 'reference' :
+                    (diff >= 0 ? `+${diff.toFixed(4)}` : diff.toFixed(4))
+    const diffColor = diff >= 0 ? 'var(--green)' : 'var(--red)'
+    return `<div class="exp-row">
+      <div class="exp-meta">
+        <span style="color:${color};font-size:12px">${e.name} <span style="color:var(--muted);font-size:11px">(${e.optimizer} lr=${e.lr})</span></span>
+        <span style="font-family:var(--mono);font-size:11px">
+          <span style="color:${e.name==='Baseline M2'?'var(--muted)':diffColor}">${diffStr}</span>
+          <span style="color:${color};margin-left:8px">${e.auc.toFixed(4)}</span>
+        </span>
+      </div>
+      <div class="exp-track">
+        <div class="exp-fill" style="width:${pct}%;background:${color};opacity:${e.name==='Baseline M2'?0.4:0.9}"></div>
+        <div class="exp-baseline" style="left:${bpct}%"></div>
+      </div>
+    </div>`
+  }).join('')
+
+  // Detection experiment bars
+  const DET_BASE = 0.0658
+  const DET_MAX  = 0.15
+  const det_el = document.getElementById('det-exp-bars')
+  det_el.innerHTML = info.det_experiments.map((e, i) => {
+    const pct  = (e.map50 / DET_MAX) * 100
+    const bpct = (DET_BASE / DET_MAX) * 100
+    const diff = e.map50 - DET_BASE
+    const color= e.name === 'Baseline M2' ? 'var(--muted)' : CLS_COLORS[i % CLS_COLORS.length]
+    const diffStr = e.name === 'Baseline M2' ? 'ref' : (diff>=0?`+${diff.toFixed(4)}`:diff.toFixed(4))
+    return `<div class="exp-row">
+      <div class="exp-meta">
+        <span style="color:${color};font-size:12px">${e.name}</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">
+          P=${e.prec.toFixed(3)} R=${e.rec.toFixed(3)}
+          <span style="color:${color};margin-left:6px">${e.map50.toFixed(4)}</span>
+        </span>
+      </div>
+      <div class="exp-track">
+        <div class="exp-fill" style="width:${Math.min(pct,100)}%;background:${color}"></div>
+        <div class="exp-baseline" style="left:${bpct}%"></div>
+      </div>
+    </div>`
+  }).join('')
+
+  // Augmentations
+  const AUGS = [
+    {tag:'new',  name:'CLAHE p=0.4',            desc:'Local contrast — reveals subtle findings'},
+    {tag:'new',  name:'Gaussian Noise p=0.3',    desc:'Scanner noise robustness'},
+    {tag:'new',  name:'Random Crop/Zoom p=0.3',  desc:'Lesion scale invariance'},
+    {tag:'kept', name:'Horizontal Flip p=0.5',   desc:'Left-right symmetry valid'},
+    {tag:'kept', name:'Rotation ±10° p=0.5',     desc:'Positioning variation'},
+    {tag:'kept', name:'Brightness/Contrast p=0.5',desc:'Exposure variation'},
+    {tag:'off',  name:'Vertical Flip',           desc:'Medically unsafe — inverts anatomy'},
+    {tag:'off',  name:'Perspective Warp',        desc:'Distorts lung geometry'},
+    {tag:'off',  name:'Color Jitter',            desc:'X-rays are grayscale'},
+  ]
+  document.getElementById('aug-grid').innerHTML = AUGS.map(a =>
+    `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start">
+      <span class="aug-tag aug-${a.tag}" style="flex-shrink:0;margin:0;font-size:10px">${a.tag.toUpperCase()}</span>
+      <div>
+        <div style="font-size:12px;color:var(--text)">${a.name}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${a.desc}</div>
+      </div>
+    </div>`
+  ).join('')
+
+  // Model specs
+  const cls = info.classification; const det = info.detection
+  document.getElementById('model-specs').innerHTML = `
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;color:var(--accent);font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Classification</div>
+      ${[['Model',cls.name],['Backbone',cls.backbone],['Optimizer',cls.optimizer],
+         ['Learning Rate',cls.lr],['Epochs',cls.epochs],['Val AUC-ROC',cls.val_auc.toFixed(4)],
+         ['vs Baseline',cls.improvement]].map(([k,v]) =>
+        `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <span style="color:var(--muted)">${k}</span>
+          <span style="color:var(--text);font-family:${k==='Val AUC-ROC'||k==='vs Baseline'?'var(--mono)':'inherit'}">${v}</span>
+        </div>`).join('')}
+    </div>
+    <div>
+      <div style="font-size:11px;color:var(--orange);font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">Detection</div>
+      ${[['Model',det.name],['Architecture',det.model],['Optimizer',det.optimizer],
+         ['Learning Rate',det.lr],['Epochs',det.epochs],
+         ['mAP@50',det.map50.toFixed(4)],['mAP@50-95',det.map50_95.toFixed(4)]].map(([k,v]) =>
+        `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <span style="color:var(--muted)">${k}</span>
+          <span style="color:var(--text);font-family:${typeof v==='number'?'var(--mono)':'inherit'}">${v}</span>
+        </div>`).join('')}
+    </div>
+    <div style="margin-top:14px;padding:10px;background:var(--bg3);border-radius:6px;font-size:11px;color:var(--muted);line-height:1.7">
+      Platform: AMD Ryzen 3 3250U · CPU training<br>
+      Dataset: NIH ChestX-ray14 · 3000 images · 14 classes
+    </div>`
+}
+
+// ── History ──────────────────────────────────────────────
+function addToHistory(result) {
+  analysisHistory.unshift({ ...result, id: Date.now(), ts: new Date().toLocaleTimeString() })
+  if (analysisHistory.length > 50) analysisHistory.pop()
+}
+
+function renderHistory() {
+  const el = document.getElementById('history-list')
+  if (!analysisHistory.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🕐</div>
+      <div style="color:var(--muted)">No analyses yet — upload an X-ray to get started</div>
+    </div>`
+    return
+  }
+  el.innerHTML = analysisHistory.map(r =>
+    `<div style="display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;
+                 padding:14px;background:var(--bg2);border:1px solid var(--border);
+                 border-radius:10px;margin-bottom:10px">
+      ${r.images?.original
+        ? `<img src="data:image/png;base64,${r.images.original}" style="width:54px;height:54px;object-fit:cover;border-radius:6px;filter:grayscale(30%)"/>`
+        : `<div style="width:54px;height:54px;background:var(--bg3);border-radius:6px"></div>`}
+      <div>
+        <div style="font-size:13px;font-weight:500;color:#e0eaf5;margin-bottom:3px">${r.filename}</div>
+        <div style="font-size:11px;color:var(--muted)">${r.detected?.length||0} findings · ${r.time_ms}ms</div>
+        ${r.detected?.length
+          ? `<div style="font-size:11px;color:var(--orange);margin-top:3px">
+              ${r.detected.slice(0,3).map(d=>d.disease).join(', ')}${r.detected.length>3?` +${r.detected.length-3} more`:''}
+             </div>` : ''}
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted)">${r.ts}</div>
+    </div>`
+  ).join('')
+}
+
+// Init — check backend on load
+window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const res  = await fetch(`${API}/health`, { signal: AbortSignal.timeout(3000) })
+    const data = await res.json()
+    const footer = document.querySelector('.sidebar-footer')
+    footer.innerHTML = `
+      <div style="color:var(--green);margin-bottom:4px">● Backend connected</div>
+      <div>Cls model: ${data.cls_model ? '✅' : '⚠ not loaded'}</div>
+      <div>YOLO: ${data.yolo_model ? '✅' : '⚠ not loaded'}</div>
+      <div style="color:var(--muted);margin-top:4px">${data.device}</div>
+    `
+  } catch {
+    const footer = document.querySelector('.sidebar-footer')
+    footer.innerHTML = `
+      <div style="color:var(--red);margin-bottom:6px">● Backend offline</div>
+      <div style="font-size:10px;color:var(--muted);line-height:1.6">
+        Start with:<br>
+        <span style="color:var(--accent);font-family:var(--mono)">python app.py</span>
+      </div>
+    `
+  }
+})
+</script>
+</body>
+</html>
