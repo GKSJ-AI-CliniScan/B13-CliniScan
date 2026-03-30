@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-CliniScan | Advanced Lung Disease Detection</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        primary: { 50: '#f0f9ff', 100: '#e0f2fe', 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 900: '#0c4a6e' },
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'scan': 'scan 2.5s linear infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        scan: {
+                            '0%': { top: '0%' },
+                            '50%': { top: '100%' },
+                            '100%': { top: '0%' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Base & Scroll Offset */
+        html {
+            scroll-padding-top: 5rem;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .dark .glass {
+            background: rgba(15, 23, 42, 0.75);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Scroll Progress Bar */
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(to right, #0ea5e9, #2dd4bf);
+            z-index: 10000;
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        /* Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .particle {
+            position: absolute;
+            background: #0ea5e9;
+            border-radius: 50%;
+            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        /* Drag & Drop State */
+        .dragover {
+            border-color: #0ea5e9 !important;
+            background-color: rgba(14, 165, 233, 0.1) !important;
+            transform: scale(1.02);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        .dark ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Modal Blur */
+        .modal-active {
+            overflow: hidden;
+        }
+
+        #video-modal {
+            backdrop-filter: blur(10px);
+        }
+
+        /* Grad-CAM Overlay Simulation */
+        .gradcam-layer {
+            background: radial-gradient(circle at 35% 45%, rgba(255, 0, 0, 0.6) 0%, rgba(255, 255, 0, 0.4) 20%, rgba(0, 255, 0, 0.2) 40%, transparent 60%),
+                radial-gradient(circle at 70% 80%, rgba(255, 0, 0, 0.5) 0%, rgba(255, 255, 0, 0.3) 15%, transparent 40%);
+            mix-blend-mode: multiply;
+        }
+
+        .dark .gradcam-layer {
+            mix-blend-mode: color-dodge;
+            opacity: 0.8;
+        }
+
+        /* Fullscreen Reset */
+        #analyzer-app-container:fullscreen {
+            border-radius: 0;
+            border: none;
+            width: 100vw;
+            height: 100vh;
+            max-width: 100%;
+            margin: 0;
+        }
+
+        #analyzer-app-container:fullscreen #app-workspace {
+            min-height: calc(100vh - 48px);
+            /* minus header height */
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300">
+
+    <div id="progress-bar"></div>
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center gap-3 cursor-pointer group"
+                    onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-teal-400 flex items-center justify-center text-white shadow-lg group-hover:shadow-primary-500/50 transition-all duration-300 transform group-hover:scale-105">
+                        <i class="fa-solid fa-lungs text-xl"></i>
+                    </div>
+                    <span class="font-bold text-2xl tracking-tight text-slate-900 dark:text-white">AI-Clini<span
+                            class="text-primary-600 dark:text-primary-400">Scan</span></span>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#about"
+                        class="text-sm font-semibold text-slate-600 hover:text-primary-600 dark:text-slate-300 dark:hover:text-primary-400 transition-colors">How
+                        It Works</a>
+                    <a href="#features"
+                        class="text-sm font-semibold text-slate-600 hover:text-primary-600 dark:text-slate-300 dark:hover:text-primary-400 transition-colors">Features</a>
+                    <a href="#technology"
+                        class="text-sm font-semibold text-slate-600 hover:text-primary-600 dark:text-slate-300 dark:hover:text-primary-400 transition-colors">Tech
+                        Stack</a>
+                    <a href="#dashboard"
+                        class="text-sm font-semibold text-slate-600 hover:text-primary-600 dark:text-slate-300 dark:hover:text-primary-400 transition-colors">Portal</a>
+
+                    <div class="w-px h-6 bg-slate-300 dark:bg-slate-700"></div> <!-- Divider -->
+
+                    <!-- Dark Mode Toggle -->
+                    <button id="theme-toggle"
+                        class="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300 focus:outline-none">
+                        <i class="fa-solid fa-moon dark:hidden"></i>
+                        <i class="fa-solid fa-sun hidden dark:block text-yellow-400"></i>
+                    </button>
+
+                    <!-- CTA -->
+                    <a href="#analyzer"
+                        class="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2.5 rounded-full font-semibold shadow-lg shadow-primary-500/30 transition-all transform hover:-translate-y-0.5 hover:shadow-primary-500/50">
+                        Launch Analyzer
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center gap-4">
+                    <button id="theme-toggle-mobile"
+                        class="p-2 rounded-full text-slate-600 dark:text-slate-300 focus:outline-none">
+                        <i class="fa-solid fa-moon dark:hidden"></i>
+                        <i class="fa-solid fa-sun hidden dark:block text-yellow-400"></i>
+                    </button>
+                    <button id="mobile-menu-btn"
+                        class="text-slate-600 dark:text-slate-300 hover:text-primary-600 focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu"
+            class="hidden md:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 shadow-xl absolute w-full">
+            <a href="#about"
+                class="block px-6 py-4 text-base font-semibold border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">How
+                It Works</a>
+            <a href="#features"
+                class="block px-6 py-4 text-base font-semibold border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Features</a>
+            <a href="#technology"
+                class="block px-6 py-4 text-base font-semibold border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Tech
+                Stack</a>
+            <a href="#analyzer"
+                class="block px-6 py-4 text-base font-bold text-primary-600 dark:text-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Launch
+                Analyzer</a>
+        </div>
+    </nav>
+
+    <!-- Video Modal Overlay -->
+    <div id="video-modal"
+        class="fixed inset-0 z-[200] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 bg-slate-900/80">
+        <div class="bg-slate-950 w-full max-w-4xl aspect-video rounded-2xl shadow-2xl relative transform scale-95 transition-transform duration-500 border border-slate-700 p-2"
+            id="video-container">
+            <button onclick="closeModal()"
+                class="absolute -top-12 right-0 text-white hover:text-primary-400 text-3xl transition-colors"><i
+                    class="fa-solid fa-xmark"></i></button>
+            <div
+                class="w-full h-full flex items-center justify-center flex-col text-slate-400 border border-slate-800 rounded-xl bg-black relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-primary-900/20 to-teal-900/20"></div>
+                <i class="fa-brands fa-youtube text-6xl text-red-600 mb-4 animate-pulse relative z-10 cursor-pointer hover:scale-110 transition-transform"
+                    onclick="showToast('Demo video playback would begin here.', 'info')"></i>
+                <p class="text-xl font-medium text-white relative z-10">AI-CliniScan Product Showcase</p>
+                <p class="text-sm relative z-10 mt-2">Interactive 3D Simulation</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden min-h-screen flex items-center">
+        <!-- Background Blobs & Particles Container -->
+        <div id="particles-container" class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            <div
+                class="absolute top-10 -left-10 w-96 h-96 bg-primary-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob dark:opacity-20 dark:mix-blend-screen">
+            </div>
+            <div
+                class="absolute top-20 -right-10 w-96 h-96 bg-teal-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000 dark:opacity-20 dark:mix-blend-screen">
+            </div>
+            <div
+                class="absolute -bottom-10 left-1/3 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000 dark:opacity-20 dark:mix-blend-screen">
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <!-- Text Content -->
+                <div class="reveal">
+                    <div
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800/80 text-primary-600 dark:text-primary-400 font-semibold text-sm mb-6 border border-slate-200 dark:border-slate-700 shadow-sm backdrop-blur-sm hover:border-primary-400 transition-colors cursor-default">
+                        <span class="relative flex h-3 w-3">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-primary-500"></span>
+                        </span>
+                        Engine V2.0: YOLOv8 + ResNet50 is Live
+                    </div>
+                    <h1 class="text-5xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-tight">
+                        Detect Lung Diseases in <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-teal-400 drop-shadow-sm">Seconds.</span>
+                    </h1>
+                    <p class="text-lg lg:text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-lg leading-relaxed">
+                        Empower radiologists with state-of-the-art AI. Upload a chest X-ray and receive instant, highly
+                        accurate anomaly detection, multi-class classification, and explainable heatmaps.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="#analyzer"
+                            class="group bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-xl font-bold shadow-xl shadow-primary-500/30 transition-all transform hover:-translate-y-1 flex items-center gap-3">
+                            <i class="fa-solid fa-cloud-arrow-up group-hover:animate-bounce"></i> Analyze X-Ray
+                        </a>
+                        <button onclick="openModal()"
+                            class="group bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 px-8 py-4 rounded-xl font-bold shadow-sm transition-all transform hover:-translate-y-1 flex items-center gap-3">
+                            <i
+                                class="fa-solid fa-circle-play text-primary-500 group-hover:text-primary-600 transition-colors text-xl"></i>
+                            Watch Demo
+                        </button>
+                    </div>
+
+                    <div
+                        class="mt-10 flex items-center gap-6 text-sm text-slate-600 dark:text-slate-400 bg-white/50 dark:bg-slate-800/50 w-fit px-4 py-2 rounded-2xl backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50">
+                        <div class="flex -space-x-3">
+                            <img class="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 shadow-sm"
+                                src="https://i.pravatar.cc/100?img=11" alt="Doctor">
+                            <img class="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 shadow-sm"
+                                src="https://i.pravatar.cc/100?img=32" alt="Doctor">
+                            <img class="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 shadow-sm"
+                                src="https://i.pravatar.cc/100?img=33" alt="Doctor">
+                        </div>
+                        <p>Trusted by <span class="font-bold text-slate-900 dark:text-white">500+</span> Medical
+                            Facilities globally.</p>
+                    </div>
+                </div>
+
+                <!-- Hero Graphic -->
+                <div class="relative reveal lg:ml-auto w-full max-w-lg animate-float">
+                    <div
+                        class="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-[0_20px_50px_rgba(14,165,233,0.15)] p-4 border border-slate-200 dark:border-slate-700">
+                        <!-- Mac-like header -->
+                        <div class="flex gap-2 mb-4 px-2">
+                            <div class="w-3 h-3 rounded-full bg-red-400 shadow-inner"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-400 shadow-inner"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-400 shadow-inner"></div>
+                        </div>
+                        <!-- Mock App Image -->
+                        <div
+                            class="relative rounded-xl overflow-hidden bg-slate-900 aspect-[4/3] group border border-slate-700/50">
+                            <img src="https://miro.medium.com/v2/resize:fit:720/format:webp/1*7pVTN6VCU2SlWHzIB8k9pg.png"
+                                alt="X-Ray Scan"
+                                class="w-full h-full object-cover opacity-80 mix-blend-screen grayscale">
+
+                            <!-- Fake Bounding Box -->
+                            <div
+                                class="absolute top-[30%] left-[40%] w-[25%] h-[30%] border-2 border-red-500 rounded bg-red-500/20 flex items-start justify-start p-1 animate-pulse-slow">
+                                <span
+                                    class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg backdrop-blur-md">Pneumonia
+                                    96%</span>
+                            </div>
+                            <!-- Scanning line effect -->
+                            <div
+                                class="absolute left-0 w-full h-1 bg-primary-400 shadow-[0_0_15px_rgba(56,189,248,1)] animate-scan">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Floating Card -->
+                    <div class="absolute -bottom-6 -left-8 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-2xl border border-slate-100 dark:border-slate-700 flex items-center gap-4 animate-bounce"
+                        style="animation-duration: 4s;">
+                        <div
+                            class="w-12 h-12 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center text-green-600 dark:text-green-400">
+                            <i class="fa-solid fa-bolt text-xl"></i>
+                        </div>
+                        <div>
+                            <p
+                                class="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">
+                                Inference Speed</p>
+                            <p class="text-xl font-bold text-slate-900 dark:text-white">0.4 Seconds</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Metrics Section -->
+    <section
+        class="py-12 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 relative z-20 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div
+                class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
+                <div class="reveal p-4">
+                    <div
+                        class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-teal-400 mb-2">
+                        150k+</div>
+                    <div class="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-widest">Scans Analyzed
+                    </div>
+                </div>
+                <div class="reveal p-4" style="transition-delay: 100ms;">
+                    <div
+                        class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-teal-400 mb-2">
+                        99.4%</div>
+                    <div class="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-widest">Accuracy Rate
+                    </div>
+                </div>
+                <div class="reveal p-4" style="transition-delay: 200ms;">
+                    <div
+                        class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-teal-400 mb-2">
+                        2.8s</div>
+                    <div class="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-widest">Inference Time
+                    </div>
+                </div>
+                <div class="reveal p-4" style="transition-delay: 300ms;">
+                    <div
+                        class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-teal-400 mb-2">
+                        45+</div>
+                    <div class="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-widest">Clinical Partners
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="py-20 bg-slate-100/50 dark:bg-slate-800/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2
+                    class="text-sm font-bold tracking-widest text-red-500 uppercase bg-red-100 dark:bg-red-900/30 px-3 py-1 rounded-full inline-block mb-3">
+                    The Challenge</h2>
+                <h3 class="mt-2 text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
+                    Why Healthcare Needs AI Now
+                </h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div
+                    class="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 reveal">
+                    <div
+                        class="w-14 h-14 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center justify-center text-red-500 mb-6 border border-red-100 dark:border-red-900/50">
+                        <i class="fa-solid fa-hourglass-half text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3 dark:text-white">Delayed Diagnosis</h4>
+                    <p class="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">Manual review of hundreds of
+                        daily X-rays causes severe bottlenecks, delaying critical patient treatments when every hour
+                        matters.</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 reveal"
+                    style="transition-delay: 100ms;">
+                    <div
+                        class="w-14 h-14 bg-orange-50 dark:bg-orange-900/20 rounded-xl flex items-center justify-center text-orange-500 mb-6 border border-orange-100 dark:border-orange-900/50">
+                        <i class="fa-solid fa-user-md text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3 dark:text-white">Radiologist Burnout</h4>
+                    <p class="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">The global shortage of trained
+                        radiologists leads to immense workloads, causing severe fatigue and reducing overall diagnostic
+                        efficiency.</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 reveal"
+                    style="transition-delay: 200ms;">
+                    <div
+                        class="w-14 h-14 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl flex items-center justify-center text-yellow-600 mb-6 border border-yellow-100 dark:border-yellow-900/50">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-3 dark:text-white">Human Error</h4>
+                    <p class="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">Subtle, early-stage
+                        abnormalities are easily missed by the human eye, especially during long, exhausting medical
+                        shifts.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution & How It Works -->
+    <section id="about" class="py-24 bg-white dark:bg-slate-900 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center max-w-3xl mx-auto mb-20 reveal">
+                <h2
+                    class="text-sm font-bold tracking-widest text-primary-600 dark:text-primary-400 uppercase bg-primary-50 dark:bg-primary-900/30 px-3 py-1 rounded-full inline-block mb-3">
+                    The Solution</h2>
+                <h3 class="mt-2 text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl mb-4">
+                    Intelligent Workflow Automation
+                </h3>
+                <p class="text-lg text-slate-600 dark:text-slate-400">AI-CliniScan integrates seamlessly into existing
+                    hospital PAC systems, acting as a tireless, highly accurate second pair of eyes.</p>
+            </div>
+
+            <!-- Flow UI -->
+            <div class="relative reveal">
+                <!-- Connecting Line Desktop -->
+                <div
+                    class="hidden md:block absolute top-12 left-[10%] w-[80%] h-0.5 bg-gradient-to-r from-primary-200 via-primary-400 to-teal-200 dark:from-primary-900 dark:via-primary-500 dark:to-teal-900 z-0">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
+                    <!-- Step 1 -->
+                    <div class="relative text-center group">
+                        <div
+                            class="w-24 h-24 mx-auto bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-primary-600 dark:text-primary-400 mb-6 border-4 border-slate-50 dark:border-slate-900 shadow-xl group-hover:scale-110 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/50 transition-all z-10 relative">
+                            <i class="fa-solid fa-file-arrow-up text-3xl"></i>
+                        </div>
+                        <h4 class="font-bold text-xl mb-2 dark:text-white">1. Upload Scan</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 px-4">Securely upload DICOM/JPEG to our
+                            HIPAA-compliant cloud node.</p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="relative text-center group">
+                        <div
+                            class="w-24 h-24 mx-auto bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-primary-600 dark:text-primary-400 mb-6 border-4 border-slate-50 dark:border-slate-900 shadow-xl group-hover:scale-110 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/50 transition-all z-10 relative">
+                            <i class="fa-solid fa-microchip text-3xl"></i>
+                        </div>
+                        <h4 class="font-bold text-xl mb-2 dark:text-white">2. AI Processing</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 px-4">YOLOv8 & ResNet50 process the matrix
+                            in milliseconds.</p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="relative text-center group">
+                        <div
+                            class="w-24 h-24 mx-auto bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-primary-600 dark:text-primary-400 mb-6 border-4 border-slate-50 dark:border-slate-900 shadow-xl group-hover:scale-110 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/50 transition-all z-10 relative">
+                            <i class="fa-solid fa-bullseye text-3xl"></i>
+                        </div>
+                        <h4 class="font-bold text-xl mb-2 dark:text-white">3. Detection</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 px-4">Boxes and heatmaps pinpoint 14+
+                            distinct pathologies.</p>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="relative text-center group">
+                        <div
+                            class="w-24 h-24 mx-auto bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-primary-600 dark:text-primary-400 mb-6 border-4 border-slate-50 dark:border-slate-900 shadow-xl group-hover:scale-110 group-hover:bg-primary-50 dark:group-hover:bg-primary-900/50 transition-all z-10 relative">
+                            <i class="fa-solid fa-file-medical text-3xl"></i>
+                        </div>
+                        <h4 class="font-bold text-xl mb-2 dark:text-white">4. Smart Report</h4>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 px-4">Structured medical report generated
+                            for instant verification.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CORE FEATURES SECTION -->
+    <section id="features" class="py-24 bg-slate-50 dark:bg-slate-800/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2
+                    class="text-sm font-bold tracking-widest text-primary-600 dark:text-primary-400 uppercase bg-primary-100 dark:bg-primary-900/30 px-3 py-1 rounded-full inline-block mb-3">
+                    Core Capabilities</h2>
+                <h3 class="mt-2 text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">
+                    Built for Clinical Excellence
+                </h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div
+                    class="group bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-primary-500 dark:hover:border-primary-500 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl reveal">
+                    <div
+                        class="w-12 h-12 bg-primary-50 dark:bg-slate-700 rounded-lg flex items-center justify-center text-primary-600 dark:text-primary-400 mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-microscope text-xl"></i>
+                    </div>
+                    <h4
+                        class="text-xl font-bold mb-3 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                        YOLO-Based Detection</h4>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">State-of-the-art object
+                        detection identifies micro-nodules, cardiomegaly, and effusions with pinpoint bounding boxes.
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="group bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl reveal"
+                    style="transition-delay: 100ms;">
+                    <div
+                        class="w-12 h-12 bg-teal-50 dark:bg-slate-700 rounded-lg flex items-center justify-center text-teal-600 dark:text-teal-400 mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-network-wired text-xl"></i>
+                    </div>
+                    <h4
+                        class="text-xl font-bold mb-3 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                        ResNet50 Classification</h4>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Deep residual networks power
+                        our multi-label classification, categorizing findings into 14 distinct pathological classes.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="group bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-orange-500 dark:hover:border-orange-500 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl reveal"
+                    style="transition-delay: 200ms;">
+                    <div
+                        class="w-12 h-12 bg-orange-50 dark:bg-slate-700 rounded-lg flex items-center justify-center text-orange-600 dark:text-orange-400 mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-fire text-xl"></i>
+                    </div>
+                    <h4
+                        class="text-xl font-bold mb-3 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                        Grad-CAM Heatmaps</h4>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Explainable AI (XAI) overlays
+                        visual heatmaps to show exactly which areas of the X-ray influenced the model's decision.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div
+                    class="group bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl reveal">
+                    <div
+                        class="w-12 h-12 bg-blue-50 dark:bg-slate-700 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-file-signature text-xl"></i>
+                    </div>
+                    <h4
+                        class="text-xl font-bold mb-3 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        Smart Report Gen</h4>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Automatically generates
+                        preliminary radiological reports in standard medical phrasing, ready for immediate doctor
+                        sign-off.</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="group bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-purple-500 dark:hover:border-purple-500 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl reveal"
+                    style="transition-delay: 100ms;">
+                    <div
+                        class="w-12 h-12 bg-purple-50 dark:bg-slate-700 rounded-lg flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-clock-rotate-left text-xl"></i>
+                    </div>
+                    <h4
+                        class="text-xl font-bold mb-3 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                        Patient History Tracking</h4>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Track progression over time.
+                        Compare historical scans side-by-side to easily monitor disease advancement or recovery.</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="group bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 hover:border-rose-500 dark:hover:border-rose-500 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl reveal"
+                    style="transition-delay: 200ms;">
+                    <div
+                        class="w-12 h-12 bg-rose-50 dark:bg-slate-700 rounded-lg flex items-center justify-center text-rose-600 dark:text-rose-400 mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-users-gear text-xl"></i>
+                    </div>
+                    <h4
+                        class="text-xl font-bold mb-3 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+                        Role-Based Access</h4>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Secure portals tailored for
+                        Doctors (detailed analytics/tools) and Patients (simplified explanations & exportable reports).
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comprehensive Detection Section -->
+    <section class="py-20 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12 reveal">
+                <h2
+                    class="text-sm font-bold tracking-widest text-primary-600 dark:text-primary-400 uppercase bg-primary-50 dark:bg-primary-900/30 px-3 py-1 rounded-full inline-block mb-3">
+                    Comprehensive Detection</h2>
+                <h3 class="mt-2 text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl mb-4">
+                    Identify 14 Distinct Abnormalities
+                </h3>
+                <p class="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Our multi-class classification model identifies diverse thoracic abnormalities with
+                    radiologist-level accuracy, ensuring comprehensive screening for every scan.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap justify-center gap-3 md:gap-4 max-w-5xl mx-auto reveal">
+                <!-- Pathologies List -->
+                <div
+                    class="group px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 hover:border-primary-500 hover:shadow-md transition-all cursor-default">
+                    <div
+                        class="w-2 h-2 rounded-full bg-red-500 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(239,68,68,0.6)]">
+                    </div>
+                    <span
+                        class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">Pneumonia</span>
+                </div>
+                <div
+                    class="group px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 hover:border-teal-500 hover:shadow-md transition-all cursor-default">
+                    <div
+                        class="w-2 h-2 rounded-full bg-teal-500 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(20,184,166,0.6)]">
+                    </div>
+                    <span
+                        class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">Cardiomegaly</span>
+                </div>
+                <div
+                    class="group px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 hover:border-blue-500 hover:shadow-md transition-all cursor-default">
+                    <div
+                        class="w-2 h-2 rounded-full bg-blue-500 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(59,130,246,0.6)]">
+                    </div>
+                    <span
+                        class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Pleural
+                        Effusion</span>
+                </div>
+                <div
+                    class="group px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 hover:border-purple-500 hover:shadow-md transition-all cursor-default">
+                    <div
+                        class="w-2 h-2 rounded-full bg-purple-500 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(168,85,247,0.6)]">
+                    </div>
+                    <span
+                        class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Pneumothorax</span>
+                </div>
+                <div
+                    class="group px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 hover:border-orange-500 hover:shadow-md transition-all cursor-default">
+                    <div
+                        class="w-2 h-2 rounded-full bg-orange-500 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(249,115,22,0.6)]">
+                    </div>
+                    <span
+                        class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">Atelectasis</span>
+                </div>
+                <div
+                    class="group px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 hover:border-indigo-500 hover:shadow-md transition-all cursor-default">
+                    <div
+                        class="w-2 h-2 rounded-full bg-indigo-500 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(99,102,241,0.6)]">
+                    </div>
+                    <span
+                        class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Consolidation</span>
+                </div>
+                <div
+                    class="group px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 hover:border-cyan-500 hover:shadow-md transition-all cursor-default">
+                    <div
+                        class="w-2 h-2 rounded-full bg-cyan-500 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(6,182,212,0.6)]">
+                    </div>
+                    <span
+                        class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">Edema</span>
+                </div>
+                <div
+                    class="group px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 hover:border-green-500 hover:shadow-md transition-all cursor-default">
+                    <div
+                        class="w-2 h-2 rounded-full bg-green-500 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(34,197,94,0.6)]">
+                    </div>
+                    <span
+                        class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">Emphysema</span>
+                </div>
+                <div
+                    class="group px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 hover:border-rose-500 hover:shadow-md transition-all cursor-default">
+                    <div
+                        class="w-2 h-2 rounded-full bg-rose-500 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(244,63,94,0.6)]">
+                    </div>
+                    <span
+                        class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">Fibrosis</span>
+                </div>
+                <div
+                    class="group px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 hover:border-yellow-500 hover:shadow-md transition-all cursor-default">
+                    <div
+                        class="w-2 h-2 rounded-full bg-yellow-500 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(234,179,8,0.6)]">
+                    </div>
+                    <span
+                        class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">Nodule</span>
+                </div>
+                <div
+                    class="group px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 hover:border-red-600 hover:shadow-md transition-all cursor-default">
+                    <div
+                        class="w-2 h-2 rounded-full bg-red-600 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(220,38,38,0.6)]">
+                    </div>
+                    <span
+                        class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">Mass</span>
+                </div>
+                <div
+                    class="group px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 hover:border-primary-400 hover:shadow-md transition-all cursor-default">
+                    <div
+                        class="w-2 h-2 rounded-full bg-primary-400 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(56,189,248,0.6)]">
+                    </div>
+                    <span
+                        class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-primary-500 dark:group-hover:text-primary-300 transition-colors">Infiltration</span>
+                </div>
+                <div
+                    class="group px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 hover:border-slate-500 hover:shadow-md transition-all cursor-default">
+                    <div
+                        class="w-2 h-2 rounded-full bg-slate-500 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(100,116,139,0.6)]">
+                    </div>
+                    <span
+                        class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-slate-600 dark:group-hover:text-slate-400 transition-colors">Hernia</span>
+                </div>
+                <div
+                    class="group px-5 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center gap-3 hover:border-slate-500 hover:shadow-md transition-all cursor-default">
+                    <div
+                        class="w-2 h-2 rounded-full bg-slate-500 group-hover:scale-150 transition-transform shadow-[0_0_8px_rgba(100,116,139,0.6)]">
+                    </div>
+                    <span
+                        class="font-semibold text-slate-700 dark:text-slate-200 group-hover:text-slate-600 dark:group-hover:text-slate-400 transition-colors">Pleural
+                        Thickening</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LIVE ANALYZER SECTION (CRITICAL DEMO UI) -->
+    <section id="analyzer"
+        class="py-24 bg-slate-100 dark:bg-slate-950 relative border-y border-slate-200 dark:border-slate-800 shadow-inner overflow-hidden transition-colors duration-300">
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
+            style="background-image: radial-gradient(#0ea5e9 2px, transparent 2px); background-size: 40px 40px;"></div>
+        <!-- Glow Effect (Dark mode only) -->
+        <div
+            class="hidden dark:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary-600/10 rounded-full blur-[120px] pointer-events-none">
+        </div>
+
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-12 reveal">
+                <span
+                    class="bg-primary-100 dark:bg-primary-500/20 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-500/30 px-5 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-4 inline-block shadow-sm">Interactive
+                    Engine</span>
+                <h2 class="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-4">Try AI-CliniScan
+                    Live</h2>
+                <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto text-lg">Upload an image or use our
+                    sample to experience the inference model in action. The app will visually parse the image using
+                    simulated processing logic.</p>
+            </div>
+
+            <!-- App Container -->
+            <div id="analyzer-app-container"
+                class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden reveal relative transition-all duration-300">
+                <!-- Mac Header -->
+                <div
+                    class="bg-slate-100 dark:bg-slate-950 px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between transition-colors duration-300">
+                    <div class="flex gap-2">
+                        <div
+                            class="w-3.5 h-3.5 rounded-full bg-[#ff5f56] hover:bg-[#ff5f56]/80 cursor-pointer shadow-inner">
+                        </div>
+                        <div
+                            class="w-3.5 h-3.5 rounded-full bg-[#ffbd2e] hover:bg-[#ffbd2e]/80 cursor-pointer shadow-inner">
+                        </div>
+                        <div
+                            class="w-3.5 h-3.5 rounded-full bg-[#27c93f] hover:bg-[#27c93f]/80 cursor-pointer shadow-inner">
+                        </div>
+                    </div>
+                    <div class="text-xs font-mono text-slate-500 flex items-center gap-2">
+                        <i class="fa-solid fa-lock text-[10px]"></i> aicliniscan.local/inference
+                    </div>
+                    <div><i class="fa-solid fa-expand text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer"
+                            onclick="toggleFullScreen()" title="Toggle Fullscreen"></i></div>
+                </div>
+
+                <!-- App Body -->
+                <div class="p-6 md:p-8 min-h-[550px] flex flex-col items-center justify-center relative"
+                    id="app-workspace">
+
+                    <!-- View 1: Upload State -->
+                    <div id="upload-state" class="w-full max-w-2xl text-center transition-all duration-500">
+                        <div id="drop-zone"
+                            class="border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/30 rounded-3xl p-16 transition-all duration-300 cursor-pointer group hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-slate-800/60 shadow-inner">
+                            <div
+                                class="w-20 h-20 bg-white dark:bg-slate-700/50 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/50 rounded-2xl mx-auto flex items-center justify-center mb-6 transition-colors shadow-sm">
+                                <i
+                                    class="fa-solid fa-cloud-arrow-up text-4xl text-slate-400 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold mb-3 text-slate-900 dark:text-white">Drag & Drop X-ray image
+                            </h3>
+                            <p class="text-slate-500 dark:text-slate-400 text-sm mb-8 font-medium">Supports DICOM, JPEG,
+                                PNG (Max 15MB)</p>
+                            <input type="file" id="file-upload" class="hidden" accept="image/*">
+                            <button onclick="document.getElementById('file-upload').click()"
+                                class="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-primary-500/20 transition-all hover:-translate-y-1">
+                                Browse Local Files
+                            </button>
+                        </div>
+                        <div class="mt-8 flex justify-center items-center gap-4">
+                            <div class="h-px bg-slate-200 dark:bg-slate-700 w-16"></div>
+                            <button onclick="useSampleImage()"
+                                class="text-sm font-semibold text-slate-500 hover:text-primary-600 dark:text-slate-400 dark:hover:text-white transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-image"></i> Or use clinical sample
+                            </button>
+                            <div class="h-px bg-slate-200 dark:bg-slate-700 w-16"></div>
+                        </div>
+                    </div>
+
+                    <!-- View 2: Loading State -->
+                    <div id="loading-state"
+                        class="hidden w-full text-center flex flex-col items-center justify-center absolute inset-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md z-20 transition-colors duration-300">
+                        <div class="relative w-28 h-28 mb-8">
+                            <!-- Custom glowing spinner -->
+                            <div class="absolute inset-0 border-4 border-slate-200 dark:border-slate-700 rounded-full">
+                            </div>
+                            <div
+                                class="absolute inset-0 border-4 border-primary-500 rounded-full border-t-transparent animate-spin">
+                            </div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <i
+                                    class="fa-solid fa-brain text-3xl text-primary-500 dark:text-primary-400 animate-pulse"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-3 tracking-wide">AI Processing
+                            Core Active</h3>
+                        <p class="text-primary-600 dark:text-primary-400 text-sm font-mono bg-primary-50 dark:bg-primary-900/30 px-4 py-1.5 rounded-full border border-primary-100 dark:border-primary-800/50"
+                            id="loading-text">Extracting spatial features layer 42/108...</p>
+
+                        <div
+                            class="w-72 h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full mt-8 overflow-hidden shadow-inner relative">
+                            <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-primary-600 to-teal-400 rounded-full w-0 transition-all duration-[2000ms] ease-out shadow-[0_0_10px_rgba(14,165,233,0.5)]"
+                                id="sim-progress"></div>
+                        </div>
+                    </div>
+
+                    <!-- View 3: Result State -->
+                    <div id="result-state"
+                        class="hidden w-full h-full grid grid-cols-1 lg:grid-cols-12 gap-8 absolute inset-0 bg-white dark:bg-slate-900 p-6 md:p-8 overflow-y-auto transition-colors duration-300">
+
+                        <!-- Image Viewer (Left 7 cols) -->
+                        <div class="flex flex-col lg:col-span-7 h-full">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-lg flex items-center gap-2 text-slate-900 dark:text-white">
+                                    <div
+                                        class="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_5px_rgba(34,197,94,0.6)]">
+                                    </div> Clinical Viewer
+                                </h3>
+                                <div
+                                    class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg shadow-inner gap-1 border border-slate-200 dark:border-slate-700">
+                                    <button id="btn-original" onclick="setViewMode('original')"
+                                        class="view-toggle px-4 py-1.5 rounded-md text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">Original</button>
+                                    <button id="btn-bboxes" onclick="setViewMode('bboxes')"
+                                        class="view-toggle bg-primary-600 text-white px-4 py-1.5 rounded-md text-xs font-semibold shadow-md transition-colors">B-Boxes</button>
+                                    <button id="btn-gradcam" onclick="setViewMode('gradcam')"
+                                        class="view-toggle px-4 py-1.5 rounded-md text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">Grad-CAM</button>
+                                </div>
+                            </div>
+
+                            <!-- Enhanced UI Image Container -->
+                            <div
+                                class="relative bg-slate-100 dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-300 dark:border-slate-700/60 flex-1 min-h-[400px] overflow-hidden flex items-center justify-center group shadow-inner">
+                                <!-- Subtle grid pattern background -->
+                                <div class="absolute inset-0 opacity-[0.05] dark:opacity-10"
+                                    style="background-image: radial-gradient(currentColor 1px, transparent 1px); background-size: 20px 20px; color: #64748b;">
+                                </div>
+
+                                <!-- Dynamic Image injected via JS -->
+                                <img id="analyzed-image" src="" alt="Analyzed Scan"
+                                    class="max-w-full max-h-full object-contain relative z-10 transition-transform duration-700 group-hover:scale-[1.02] rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+
+                                <!-- Overlays Container -->
+                                <div id="overlays-container"
+                                    class="absolute inset-0 z-20 pointer-events-none transition-opacity duration-300">
+                                    <!-- Simulated Dynamic Bounding Boxes -->
+                                    <div id="bboxes-layer" class="absolute inset-0">
+                                    </div>
+
+                                    <!-- Simulated Grad-CAM Layer (Hidden by default) -->
+                                    <div id="gradcam-layer"
+                                        class="absolute inset-0 gradcam-layer opacity-0 transition-opacity duration-500 pointer-events-auto mix-blend-multiply dark:mix-blend-color-dodge">
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                class="mt-4 flex justify-between text-xs font-mono text-slate-500 dark:text-slate-400 px-2">
+                                <span>ID: <span
+                                        class="text-slate-700 dark:text-slate-300 font-semibold">ANON-8492</span></span>
+                                <span>Resolution: <span class="text-slate-700 dark:text-slate-300 font-semibold"
+                                        id="img-res">2048x2048</span></span>
+                                <span>Model: <span
+                                        class="text-primary-600 dark:text-primary-400 font-semibold">ResNet50-Med</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Analysis Results (Right 5 cols) -->
+                        <div class="flex flex-col lg:col-span-5 h-full">
+                            <h3 class="font-bold text-lg mb-4 flex items-center gap-2 text-slate-900 dark:text-white"><i
+                                    class="fa-solid fa-file-waveform text-primary-500"></i> Auto-Generated Report</h3>
+
+                            <div
+                                class="bg-slate-50 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-slate-200 dark:border-slate-700 flex-1 flex flex-col shadow-sm">
+                                <div
+                                    class="flex items-center justify-between mb-6 pb-5 border-b border-slate-200 dark:border-slate-700/50">
+                                    <div>
+                                        <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
+                                            Diagnosis Status</h4>
+                                        <span id="diagnosis-status"
+                                            class="bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/20 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-2">
+                                            <i class="fa-solid fa-circle-exclamation"></i> Findings Detected
+                                        </span>
+                                    </div>
+                                    <div class="text-right">
+                                        <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
+                                            System Confidence</h4>
+                                        <span id="system-confidence"
+                                            class="text-slate-900 dark:text-white font-mono text-xl font-bold tracking-tight">-</span>
+                                    </div>
+                                </div>
+
+                                <h4
+                                    class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
+                                    Detected Classes</h4>
+                                <div id="predictions-container" class="space-y-4 mb-6">
+                                </div>
+
+                                <h4
+                                    class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 mt-auto">
+                                    Impressions</h4>
+                                <div id="impressions-text"
+                                    class="text-sm text-slate-700 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-900/80 p-4 rounded-xl border border-slate-200 dark:border-slate-700 font-mono shadow-sm">
+                                </div>
+
+                                <div class="mt-6 flex gap-3">
+                                    <button onclick="exportPDF()"
+                                        class="flex-1 bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-lg flex justify-center items-center gap-2">
+                                        <i class="fa-solid fa-download"></i> Export PDF
+                                    </button>
+                                    <button onclick="resetAnalyzer()"
+                                        class="flex-1 bg-white hover:bg-slate-100 text-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 dark:text-white py-3 rounded-xl text-sm font-bold transition-all flex justify-center items-center gap-2 border border-slate-200 dark:border-slate-600 shadow-sm">
+                                        <i class="fa-solid fa-rotate-right"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Preview Section -->
+    <section id="dashboard" class="py-24 bg-slate-50 dark:bg-slate-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-10 reveal">
+                <div>
+                    <h2
+                        class="text-sm font-bold tracking-widest text-primary-600 dark:text-primary-400 uppercase bg-primary-50 dark:bg-primary-900/30 px-3 py-1 rounded-full inline-block mb-3">
+                        Hospital Portal</h2>
+                    <h3 class="mt-2 text-3xl font-extrabold text-slate-900 dark:text-white">Patient Tracking Hub</h3>
+                </div>
+                <button onclick="showToast('Loading full dashboard view... (Demo)', 'success')"
+                    class="mt-4 md:mt-0 px-6 py-2 border-2 border-primary-600 text-primary-600 dark:text-primary-400 dark:border-primary-500 rounded-full font-bold hover:bg-primary-600 hover:text-white dark:hover:bg-primary-500 dark:hover:text-slate-900 transition-all">
+                    View Full System
+                </button>
+            </div>
+
+            <!-- Table UI -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden reveal">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse whitespace-nowrap">
+                        <thead>
+                            <tr
+                                class="bg-slate-100 dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 text-xs font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
+                                <th class="p-5">Patient ID</th>
+                                <th class="p-5">Scan Date</th>
+                                <th class="p-5">Modality</th>
+                                <th class="p-5">AI Inference</th>
+                                <th class="p-5">Severity Score</th>
+                                <th class="p-5">Review Status</th>
+                                <th class="p-5 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm divide-y divide-slate-100 dark:divide-slate-700/50">
+                            <!-- Row 1 -->
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group cursor-pointer"
+                                onclick="viewPatient('PT-2026-881')">
+                                <td class="p-5 font-mono font-bold text-slate-900 dark:text-white">PT-2026-881</td>
+                                <td class="p-5 text-slate-500 dark:text-slate-400">Mar 28, 2026</td>
+                                <td class="p-5"><span
+                                        class="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-xs font-medium">DX
+                                        Chest PA</span></td>
+                                <td class="p-5 font-medium text-slate-900 dark:text-white flex items-center gap-2">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>Pneumonia, Effusion
+                                </td>
+                                <td class="p-5"><span
+                                        class="bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400 py-1.5 px-3 rounded-full text-xs font-bold border border-red-200 dark:border-red-800">Critical
+                                        (98%)</span></td>
+                                <td class="p-5"><span
+                                        class="flex items-center text-yellow-600 dark:text-yellow-400 font-medium"><i
+                                            class="fa-solid fa-clock mr-2"></i> Pending</span></td>
+                                <td class="p-5 text-center"><button
+                                        class="bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:border-primary-500 hover:text-primary-600 p-2 rounded-lg shadow-sm transition-all"><i
+                                            class="fa-solid fa-arrow-up-right-from-square"></i></button></td>
+                            </tr>
+                            <!-- Row 2 -->
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group cursor-pointer"
+                                onclick="viewPatient('PT-2026-882')">
+                                <td class="p-5 font-mono font-bold text-slate-900 dark:text-white">PT-2026-882</td>
+                                <td class="p-5 text-slate-500 dark:text-slate-400">Mar 28, 2026</td>
+                                <td class="p-5"><span
+                                        class="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-xs font-medium">DX
+                                        Chest AP</span></td>
+                                <td class="p-5 font-medium text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>No Findings
+                                </td>
+                                <td class="p-5"><span
+                                        class="bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400 py-1.5 px-3 rounded-full text-xs font-bold border border-green-200 dark:border-green-800">Normal
+                                        (02%)</span></td>
+                                <td class="p-5"><span
+                                        class="flex items-center text-green-600 dark:text-green-400 font-medium"><i
+                                            class="fa-solid fa-check-circle mr-2"></i> Verified by Dr. S</span></td>
+                                <td class="p-5 text-center"><button
+                                        class="bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:border-primary-500 hover:text-primary-600 p-2 rounded-lg shadow-sm transition-all"><i
+                                            class="fa-solid fa-arrow-up-right-from-square"></i></button></td>
+                            </tr>
+                            <!-- Row 3 -->
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group cursor-pointer"
+                                onclick="viewPatient('PT-2026-883')">
+                                <td class="p-5 font-mono font-bold text-slate-900 dark:text-white">PT-2026-883</td>
+                                <td class="p-5 text-slate-500 dark:text-slate-400">Mar 27, 2026</td>
+                                <td class="p-5"><span
+                                        class="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-xs font-medium">DX
+                                        Chest PA</span></td>
+                                <td class="p-5 font-medium text-slate-900 dark:text-white flex items-center gap-2">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>Nodule (8mm)
+                                </td>
+                                <td class="p-5"><span
+                                        class="bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-400 py-1.5 px-3 rounded-full text-xs font-bold border border-orange-200 dark:border-orange-800">Moderate
+                                        (65%)</span></td>
+                                <td class="p-5"><span
+                                        class="flex items-center text-green-600 dark:text-green-400 font-medium"><i
+                                            class="fa-solid fa-check-circle mr-2"></i> Verified by Dr. M</span></td>
+                                <td class="p-5 text-center"><button
+                                        class="bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:border-primary-500 hover:text-primary-600 p-2 rounded-lg shadow-sm transition-all"><i
+                                            class="fa-solid fa-arrow-up-right-from-square"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Stack -->
+    <section id="technology" class="py-24 bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-sm font-bold tracking-widest text-primary-600 dark:text-primary-400 uppercase mb-3 reveal">
+                Under the Hood</h2>
+            <h3 class="text-3xl font-extrabold text-slate-900 dark:text-white mb-16 reveal">Enterprise-Grade Stack</h3>
+
+            <div
+                class="grid grid-cols-2 md:grid-cols-5 gap-10 items-center justify-items-center opacity-70 hover:opacity-100 transition-opacity duration-500 reveal">
+                <!-- Tech Items -->
+                <div class="flex flex-col items-center gap-4 group">
+                    <i
+                        class="fa-brands fa-react text-6xl text-[#61DAFB] group-hover:scale-110 group-hover:animate-spin-slow transition-transform"></i>
+                    <span class="font-bold tracking-wide dark:text-white text-sm">React.js UI</span>
+                </div>
+                <div class="flex flex-col items-center gap-4 group">
+                    <i
+                        class="fa-brands fa-python text-6xl text-[#3776AB] group-hover:scale-110 transition-transform"></i>
+                    <span class="font-bold tracking-wide dark:text-white text-sm">FastAPI Base</span>
+                </div>
+                <div class="flex flex-col items-center gap-4 group relative">
+                    <div
+                        class="absolute inset-0 bg-primary-500/20 blur-xl rounded-full scale-0 group-hover:scale-100 transition-transform">
+                    </div>
+                    <i
+                        class="fa-solid fa-brain text-6xl text-[#FF6F00] group-hover:scale-110 transition-transform relative z-10"></i>
+                    <span class="font-bold tracking-wide dark:text-white text-sm relative z-10">YOLOv8 Core</span>
+                </div>
+
+                <!-- Replaced AWS with ResNet50 -->
+                <div class="flex flex-col items-center gap-4 group">
+                    <i
+                        class="fa-solid fa-project-diagram text-6xl text-teal-500 group-hover:scale-110 transition-transform"></i>
+                    <span class="font-bold tracking-wide dark:text-white text-sm">ResNet50 Net</span>
+                </div>
+
+                <div class="flex flex-col items-center gap-4 group">
+                    <i
+                        class="fa-solid fa-database text-6xl text-primary-500 group-hover:scale-110 transition-transform"></i>
+                    <span class="font-bold tracking-wide dark:text-white text-sm">VinDr-CXR Data</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="py-24 bg-slate-50 dark:bg-slate-900 relative">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 reveal">
+            <div
+                class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                <div class="grid grid-cols-1 md:grid-cols-5">
+                    <div
+                        class="md:col-span-2 p-10 bg-gradient-to-br from-primary-600 to-teal-600 text-white flex flex-col justify-between relative overflow-hidden">
+                        <!-- Abstract bg -->
+                        <div class="absolute -right-20 -bottom-20 w-64 h-64 border-4 border-white/10 rounded-full">
+                        </div>
+                        <div class="absolute -right-10 -bottom-10 w-48 h-48 border-4 border-white/10 rounded-full">
+                        </div>
+
+                        <div class="relative z-10">
+                            <h3 class="text-3xl font-bold mb-4">Request Trial</h3>
+                            <p class="text-primary-50 mb-10 leading-relaxed text-sm">Interested in deploying
+                                AI-CliniScan at your facility? Let's discuss integration with your existing PACS
+                                workflow.</p>
+                            <div class="space-y-6">
+                                <p class="flex items-center gap-4 font-medium"><i
+                                        class="fa-solid fa-location-dot w-5 text-xl text-teal-200"></i> Valley
+                                    Innovation Center, CA</p>
+                                <p class="flex items-center gap-4 font-medium"><i
+                                        class="fa-solid fa-envelope w-5 text-xl text-teal-200"></i>
+                                    enterprise@aicliniscan.com</p>
+                                <p class="flex items-center gap-4 font-medium"><i
+                                        class="fa-solid fa-phone w-5 text-xl text-teal-200"></i> +1 (800) 555-SCAN</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-3 p-10 lg:p-12">
+                        <form id="contact-form" class="space-y-5">
+                            <div class="grid grid-cols-2 gap-5">
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">First
+                                        Name</label>
+                                    <input type="text" required
+                                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-slate-900 dark:text-white transition-all">
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Last
+                                        Name</label>
+                                    <input type="text" required
+                                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-slate-900 dark:text-white transition-all">
+                                </div>
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Work
+                                    Email</label>
+                                <input type="email" required
+                                    class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-slate-900 dark:text-white transition-all">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Message</label>
+                                <textarea required rows="4"
+                                    class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-slate-900 dark:text-white transition-all resize-none"></textarea>
+                            </div>
+                            <button type="submit"
+                                class="w-full bg-slate-900 dark:bg-primary-600 text-white font-bold py-4 rounded-xl hover:bg-slate-800 dark:hover:bg-primary-500 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex justify-center items-center gap-2">
+                                Send Request <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 py-12">
+        <div
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-8 h-8 rounded bg-gradient-to-br from-primary-500 to-teal-400 flex items-center justify-center text-white">
+                    <i class="fa-solid fa-lungs text-sm"></i>
+                </div>
+                <span class="font-bold text-xl text-slate-900 dark:text-white tracking-tight">AI-Clini<span
+                        class="text-primary-500">Scan</span></span>
+            </div>
+            <p class="text-slate-500 dark:text-slate-400 text-sm text-center font-medium">
+                &copy; 2026 AI-CliniScan Enterprise. A Concept UI/UX Demonstration.
+            </p>
+            <div class="flex gap-6">
+                <a href="#" class="text-slate-400 hover:text-primary-500 transition-colors"
+                    onclick="showToast('Navigating to GitHub Repo...', 'info')"><i
+                        class="fa-brands fa-github text-xl"></i></a>
+                <a href="#" class="text-slate-400 hover:text-primary-500 transition-colors"
+                    onclick="showToast('Opening LinkedIn Profile...', 'info')"><i
+                        class="fa-brands fa-linkedin text-xl"></i></a>
+                <a href="#" class="text-slate-400 hover:text-primary-500 transition-colors"
+                    onclick="showToast('Opening Twitter Handle...', 'info')"><i
+                        class="fa-brands fa-twitter text-xl"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Interactions -->
+    <script>
+        // --- Setup & Utilities ---
+        const html = document.documentElement;
+
+        // 1. Toast Notification System
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const isSuccess = type === 'success';
+
+            toast.className = `px-5 py-3.5 rounded-xl shadow-2xl text-white text-sm font-bold transform transition-all duration-300 translate-y-12 opacity-0 flex items-center gap-3 border ${isSuccess ? 'bg-slate-800 border-green-500 text-green-400' : 'bg-slate-800 border-primary-500 text-primary-400'}`;
+            toast.innerHTML = `<i class="fa-solid ${isSuccess ? 'fa-circle-check text-green-500' : 'fa-circle-info text-primary-500'} text-lg"></i> ${message}`;
+
+            container.appendChild(toast);
+
+            // Animate In
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-12', 'opacity-0');
+            });
+
+            // Animate Out & Remove
+            setTimeout(() => {
+                toast.classList.add('translate-y-12', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- 2. Theme Toggle (Dark/Light Mode) ---
+        const themeBtns = [document.getElementById('theme-toggle'), document.getElementById('theme-toggle-mobile')];
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+        } else {
+            html.classList.remove('dark');
+        }
+
+        themeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                html.classList.toggle('dark');
+                localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+            });
+        });
+
+        // --- 3. Mobile Menu Toggle ---
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+        // --- 4. Scroll Events (Progress Bar & Navbar) ---
+        const progressBar = document.getElementById('progress-bar');
+        const navbar = document.getElementById('navbar');
+
+        window.addEventListener('scroll', () => {
+            let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            progressBar.style.width = (winScroll / height) * 100 + "%";
+
+            if (winScroll > 50) navbar.classList.add('shadow-md');
+            else navbar.classList.remove('shadow-md');
+        });
+
+        // --- 5. Scroll Reveal Animations ---
+        const revealElements = document.querySelectorAll('.reveal');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // --- 6. Video Modal Logic ---
+        const videoModal = document.getElementById('video-modal');
+        const videoContainer = document.getElementById('video-container');
+
+        function openModal() {
+            videoModal.classList.remove('opacity-0', 'pointer-events-none');
+            videoContainer.classList.remove('scale-95');
+            document.body.classList.add('modal-active');
+        }
+        function closeModal() {
+            videoModal.classList.add('opacity-0', 'pointer-events-none');
+            videoContainer.classList.add('scale-95');
+            document.body.classList.remove('modal-active');
+        }
+        videoModal.addEventListener('click', (e) => {
+            if (e.target === videoModal) closeModal();
+        });
+
+        // --- 7. Interactive Form Submission ---
+        document.getElementById('contact-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                e.target.reset();
+                showToast('Request sent! Our enterprise team will contact you.', 'success');
+            }, 1200);
+        });
+
+        // --- 8. Dynamic Dashboard Actions ---
+        function viewPatient(id) {
+            showToast(`Loading secure medical record for ${id}...`, 'info');
+        }
+
+        // Advanced: Simulate an actual PDF generation and download
+        function exportPDF() {
+            showToast('Compiling secure PDF Report...', 'info');
+            setTimeout(() => {
+                // Generate a dummy text Blob acting as a PDF download for frontend demo purposes
+                const reportContent = "AI-CliniScan Automated Diagnostic Report\n\nPatient ID: ANON-8492\nScan Type: DX Chest PA\nModel: ResNet50-Med\n\nFINDINGS:\n- Infiltration: 94.2% Confidence\n- Nodule: 78.5% Confidence\n- Pneumothorax: 2.1% Confidence\n\nIMPRESSIONS:\n> Patchy opacity in right middle lobe suspicious for infiltration.\n> Small 8mm nodule noted in left lower lobe.\n> Recommendation: Clinical correlation and follow-up CT recommended.\n\n*** Generated automatically by AI-CliniScan Engine V2.0 ***";
+                const blob = new Blob([reportContent], { type: 'text/plain' }); // Use text/plain for universal demo compatibility without a PDF library
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'Report_ANON-8492_AI_CliniScan.txt'; // txt extension because it's text, simulates the document download.
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                showToast('Diagnostic Report downloaded successfully.', 'success');
+            }, 1500);
+        }
+
+        // Advanced: Fullscreen Toggle for the App Container
+        function toggleFullScreen() {
+            const appContainer = document.getElementById("analyzer-app-container");
+
+            if (!document.fullscreenElement) {
+                if (appContainer.requestFullscreen) {
+                    appContainer.requestFullscreen();
+                } else if (appContainer.mozRequestFullScreen) { /* Firefox */
+                    appContainer.mozRequestFullScreen();
+                } else if (appContainer.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+                    appContainer.webkitRequestFullscreen();
+                } else if (appContainer.msRequestFullscreen) { /* IE/Edge */
+                    appContainer.msRequestFullscreen();
+                }
+                showToast('Entered Fullscreen Mode', 'success');
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) { /* Firefox */
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) { /* Chrome, Safari and Opera */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE/Edge */
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        // --- 9. ADVANCED LIVE ANALYZER LOGIC ---
+        const uploadState = document.getElementById('upload-state');
+        const loadingState = document.getElementById('loading-state');
+        const resultState = document.getElementById('result-state');
+        const simProgress = document.getElementById('sim-progress');
+        const loadingText = document.getElementById('loading-text');
+        const fileInput = document.getElementById('file-upload');
+        const dropZone = document.getElementById('drop-zone');
+        const analyzedImage = document.getElementById('analyzed-image');
+
+        // View Toggles Elements
+        const bboxesLayer = document.getElementById('bboxes-layer');
+        const gradcamLayer = document.getElementById('gradcam-layer');
+
+        // Drag & Drop Events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+            handleFiles(files);
+        });
+
+        fileInput.addEventListener('change', function () { handleFiles(this.files); });
+
+        let liveOriginalImage = "";
+        let liveAnnotatedImage = "";
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (!file.type.match('image.*')) {
+                    showToast('Please upload a valid image file.', 'info');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    analyzedImage.src = e.target.result;
+                    startAnalysis(file);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function useSampleImage() {
+            try {
+                showToast('Fetching high-quality clinical sample...', 'info');
+                const res = await fetch("https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Normal_posteroanterior_%28PA%29_chest_radiograph_%28X-ray%29.jpg/800px-Normal_posteroanterior_%28PA%29_chest_radiograph_%28X-ray%29.jpg");
+                const blob = await res.blob();
+                const file = new File([blob], "sample.jpg", { type: "image/jpeg" });
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    analyzedImage.src = e.target.result;
+                    startAnalysis(file);
+                }
+                reader.readAsDataURL(file);
+            } catch (err) {
+                showToast('Failed to load sample image.', 'error');
+            }
+        }
+
+        async function startAnalysis(file) {
+            uploadState.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+
+            simProgress.style.width = '30%'; loadingText.innerText = "Analyzing tensor matrix...";
+
+            try {
+                const formData = new FormData();
+                formData.append("file", file);
+                
+                simProgress.style.width = '60%'; loadingText.innerText = "Running Anomaly Detection...";
+                const res = await fetch("/predict", { method: "POST", body: formData });
+                const data = await res.json();
+                
+                simProgress.style.width = '90%'; loadingText.innerText = "Computing visual layers...";
+                
+                liveOriginalImage = data.original_image;
+                liveAnnotatedImage = data.annotated_image;
+                
+                // Update UI elements dynamically
+                const container = document.getElementById("predictions-container");
+                container.innerHTML = "";
+                data.top_predictions.forEach((pred, index) => {
+                    const pct = pred.confidence.toFixed(1);
+                    const color = index === 0 ? "red" : (index === 1 ? "yellow" : "slate");
+                    container.innerHTML += `
+                        <div class="group ${index > 1 ? 'opacity-60' : ''}">
+                            <div class="flex justify-between text-sm mb-1.5">
+                                <span class="text-slate-700 dark:text-white font-medium flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full bg-${color}-500 shadow-sm"></div>${pred.class}
+                                </span>
+                                <span class="font-mono text-${color}-600 dark:text-${color}-400 font-bold">${pct}%</span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-900 rounded-full h-2 shadow-inner">
+                                <div class="bg-gradient-to-r ${index === 0 ? 'from-red-500 to-red-400' : (index === 1 ? 'from-yellow-500 to-yellow-400' : 'from-slate-500 to-slate-400')} h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.2)]" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                document.getElementById("system-confidence").innerText = data.top_predictions[0].confidence.toFixed(1) + "%";
+                // A normal class isn't exactly "No Findings" unless returned by ResNet, adapt logic here:
+                const isAbnormal = data.top_predictions[0].class !== "No Findings" && data.top_predictions[0].confidence > 50;
+                
+                const diagStatus = document.getElementById("diagnosis-status");
+                diagStatus.innerHTML = isAbnormal 
+                    ? `<i class="fa-solid fa-circle-exclamation"></i> Findings Detected`
+                    : `<i class="fa-solid fa-circle-check"></i> Normal Scan`;
+                diagStatus.className = isAbnormal
+                    ? `bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/20 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-2`
+                    : `bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-500/20 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-2`;
+
+                document.getElementById("impressions-text").innerHTML = `> Primary detected feature: ${data.top_predictions[0].class} (${data.top_predictions[0].confidence.toFixed(1)}%).<br>> ${isAbnormal ? 'Recommendation: Clinical correlation and follow-up recommended.' : 'Routine screening advised.'}`;
+                
+                loadingState.classList.add('hidden');
+                resultState.classList.remove('hidden');
+                resultState.classList.add('grid');
+                simProgress.style.width = '0%';
+                showToast('Analysis complete.', 'success');
+                
+                setViewMode('bboxes'); // initialize view state
+            } catch (err) {
+                console.error(err);
+                showToast('API Error. Ensure backend is running.', 'error');
+                resetAnalyzer();
+            }
+        }
+
+        function resetAnalyzer() {
+            resultState.classList.remove('grid');
+            resultState.classList.add('hidden');
+            fileInput.value = '';
+            analyzedImage.src = '';
+            liveOriginalImage = '';
+            liveAnnotatedImage = '';
+            uploadState.classList.remove('hidden');
+        }
+
+        // --- View Mode Toggle Logic ---
+        function setViewMode(mode) {
+            // Reset button styles
+            document.querySelectorAll('.view-toggle').forEach(btn => {
+                btn.className = 'view-toggle px-4 py-1.5 rounded-md text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors';
+            });
+
+            // Apply active button style
+            const activeBtn = document.getElementById(`btn-${mode}`);
+            activeBtn.className = 'view-toggle bg-primary-600 text-white px-4 py-1.5 rounded-md text-xs font-semibold shadow-md transition-colors';
+
+            // Toggle Layers & Image Source
+            if (mode === 'original') {
+                if (liveOriginalImage) analyzedImage.src = liveOriginalImage;
+                bboxesLayer.classList.add('opacity-0');
+                gradcamLayer.classList.add('opacity-0');
+                showToast('Viewing Original Clean Image', 'info');
+            }
+            else if (mode === 'bboxes') {
+                if (liveAnnotatedImage) analyzedImage.src = liveAnnotatedImage;
+                bboxesLayer.classList.remove('opacity-0');
+                gradcamLayer.classList.add('opacity-0');
+                showToast('Viewing AI Bounding Boxes', 'info');
+            }
+            else if (mode === 'gradcam') {
+                if (liveOriginalImage) analyzedImage.src = liveOriginalImage; // Heatmap applies to original
+                bboxesLayer.classList.add('opacity-0');
+                gradcamLayer.classList.remove('opacity-0');
+                showToast('Viewing Explainable AI Heatmap', 'info');
+            }
+        }
+
+        // Generate subtle particles in Hero section
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            for (let i = 0; i < 20; i++) {
+                let particle = document.createElement('div');
+                particle.className = 'particle';
+                let size = Math.random() * 6 + 2;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.animation = `float ${Math.random() * 4 + 3}s ease-in-out infinite`;
+                particle.style.animationDelay = `${Math.random() * 2}s`;
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+    </script>
+</body>
+
+</html>
