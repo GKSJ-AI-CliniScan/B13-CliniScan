@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact | CliniScan AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .contact-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: var(--panel-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+        }
+
+        .contact-sidebar {
+            background: #0b5edd;
+            color: white;
+            padding: 3rem 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .contact-sidebar h2 {
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .contact-sidebar p {
+            color: #bfdbfe;
+            font-size: 1rem;
+        }
+
+        .contact-info {
+            margin-top: 3rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .info-item i {
+            font-size: 1.5rem;
+            color: #93c5fd;
+        }
+
+        .contact-form {
+            padding: 3rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: #000000;
+            transition: var(--transition);
+            background: #f8fafc;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(11, 94, 221, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .w-100 {
+            width: 100%;
+        }
+    </style>
+    <script src="auth.js" defer></script>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="logo-icon"><i class="fa-solid fa-lungs"></i></div>
+            <span>CliniScan AI</span>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="index.html">Analysis</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="about.html">About CliniScan</a></li>
+            <li><a href="contact.html" class="active">Contact Us</a></li>
+        </ul>
+        <!-- <div class="nav-profile">
+            <img src="https://ui-avatars.com/api/?name=Dr+Asus&background=0d6efd&color=fff" alt="User Profile">
+            <span>Dr. Asus</span>
+        </div> -->
+    </nav>
+
+    <main class="workspace">
+        <div class="contact-container">
+            <div class="contact-sidebar">
+                <div>
+                    <h2>Get in Touch</h2>
+                    <p>Have questions about integrating CliniScan AI into your radiology workflow? Reach out to our
+                        technical team.</p>
+                </div>
+
+                <div class="contact-info">
+                    <div class="info-item">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>123 Medical Innovation Drive, Tech Park, Cityville</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>+1 (800) 555-0198</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>support@cliniscan-ai.com</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contact-form">
+                <div id="successMessage"
+                    style="display: none; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; text-align: center; font-weight: 500; font-size: 1.1rem; box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);">
+                    <i class="fa-solid fa-circle-check"
+                        style="font-size: 1.5rem; margin-bottom: 0.5rem; display: block;"></i>
+                    Message Sent Successfully!<br>
+                    <span style="font-size: 0.9rem; color: #a7f3d0; font-weight: 400;">Our technical team will review
+                        your inquiry and respond shortly.</span>
+                </div>
+
+                <form id="contactForm">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" name="name" class="form-control" placeholder="Dr. John Doe"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Work Email</label>
+                        <input type="email" id="email" name="email" class="form-control"
+                            placeholder="john.doe@hospital.org" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" class="form-control" placeholder="How can we help you?"
+                            required></textarea>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn-primary btn-large w-100 mt-4">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="particles.js"></script>
+    <script>
+        // Real API Submission (Web3Forms)
+        // You MUST replace 'YOUR_WEB3FORMS_ACCESS_KEY_HERE' with your actual key from web3forms.com
+        document.getElementById('contactForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('submitBtn');
+            const successMsg = document.getElementById('successMessage');
+
+            // 1. Show loading state
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending Data...';
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+
+            // 2. Gather form data and add Web3Forms Access Key
+            const formData = new FormData(this);
+            // !! Replace this string with your real access key !!
+            formData.append("access_key", "50985e7a-b1a6-4245-9326-4c3664327a22");
+            // Optional Web3Forms setting: prevent captcha
+            formData.append("from_name", "CliniScan AI Notification");
+
+            try {
+                // 3. Send to Web3Forms API
+                const response = await fetch("https://api.web3forms.com/submit", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Show success state and hide form
+                    successMsg.style.display = 'block';
+                    this.style.display = 'none';
+                    successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    alert('Web3Forms Error: ' + data.message + '\n\nDid you forget to replace the Access Key in the code?');
+                    btn.innerHTML = 'Send Message';
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }
+            } catch (error) {
+                alert('Network Error! Could not send message.');
+                btn.innerHTML = 'Send Message';
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | CliniScan AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+            margin-top: 2rem;
+        }
+        .about-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-muted);
+        }
+        .about-text h2 {
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+            font-size: 2.5rem;
+        }
+        .about-image {
+            width: 100%;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+        }
+        .feature-list {
+            list-style: none;
+            margin-top: 2rem;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+        .feature-icon {
+            color: var(--primary-color);
+            background: #eff6ff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        /* Challenge Section */
+        .challenge-section {
+            margin-top: 6rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .challenge-subtitle {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #f87171;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .challenge-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--text-main);
+        }
+        .challenge-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+        .challenge-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 2.5rem 1.5rem;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .challenge-card:hover {
+            transform: translateY(-5px);
+        }
+        .challenge-card.card-danger:hover {
+            border-color: #f87171;
+            box-shadow: 0 10px 30px -10px rgba(248, 113, 113, 0.2);
+        }
+        .challenge-card.card-warning:hover {
+            border-color: #fcd34d;
+            box-shadow: 0 10px 30px -10px rgba(252, 211, 77, 0.2);
+        }
+        .challenge-card.card-alert:hover {
+            border-color: #fb923c;
+            box-shadow: 0 10px 30px -10px rgba(251, 146, 60, 0.2);
+        }
+        .challenge-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: var(--transition);
+        }
+        .challenge-card.card-danger:hover .challenge-icon { 
+            background: rgba(248, 113, 113, 0.1); border-color: #f87171; box-shadow: 0 0 15px rgba(248, 113, 113, 0.4); color: #fca5a5;
+        }
+        .challenge-card.card-warning:hover .challenge-icon { 
+            background: rgba(252, 211, 77, 0.1); border-color: #fcd34d; box-shadow: 0 0 15px rgba(252, 211, 77, 0.4); color: #fde047;
+        }
+        .challenge-card.card-alert:hover .challenge-icon { 
+            background: rgba(251, 146, 60, 0.1); border-color: #fb923c; box-shadow: 0 0 15px rgba(251, 146, 60, 0.4); color: #fdba74;
+        }
+        .icon-danger { color: #fca5a5; }
+        .icon-warning { color: #fcd34d; }
+        .icon-alert { color: #fb923c; }
+        
+        .challenge-card h4 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 1rem;
+        }
+        .challenge-card p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        /* Tech Stack Section */
+        .tech-section {
+            margin-top: 6rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .tech-subtitle {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .tech-section > h2 {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
+        }
+        .tech-section > p {
+            max-width: 600px;
+            margin: 0 auto 3rem;
+        }
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        .tech-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 2rem 1.5rem;
+            backdrop-filter: blur(16px);
+            transition: var(--transition);
+            text-align: left;
+        }
+        .tech-card:hover {
+            border-color: var(--secondary-color);
+            box-shadow: 0 10px 30px -10px rgba(168, 85, 247, 0.25);
+            transform: translateY(-4px);
+        }
+        .tech-badge {
+            display: inline-block;
+            background: rgba(168, 85, 247, 0.12);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            color: var(--secondary-color);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+        }
+        .tech-card h4 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        .tech-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        .tech-stat {
+            margin-top: 1rem;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--secondary-color);
+            text-shadow: var(--secondary-glow);
+        }
+        .tech-stat span {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+
+        /* Features Section */
+        .features-section {
+            margin-top: 6rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .features-subtitle {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .features-section > h2 {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
+        }
+        .features-section > p {
+            max-width: 600px;
+            margin: 0 auto 3rem;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        .feature-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 2rem 1.5rem;
+            backdrop-filter: blur(16px);
+            transition: var(--transition);
+            text-align: left;
+        }
+        .feature-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.25);
+            transform: translateY(-4px);
+        }
+        .feature-card-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.25rem;
+            transition: var(--transition);
+        }
+        .feature-card:hover .feature-card-icon {
+            background: rgba(59, 130, 246, 0.2);
+            box-shadow: var(--primary-glow);
+        }
+        .feature-card h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        .feature-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            margin-top: 6rem;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: calc(var(--radius) * 1.5);
+            padding: 4rem 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.12), transparent 70%);
+            pointer-events: none;
+        }
+        .cta-section::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.12), transparent 70%);
+            pointer-events: none;
+        }
+        .cta-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .cta-section p {
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            font-size: 1.1rem;
+        }
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .btn-primary-large {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 30px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: var(--font);
+            box-shadow: var(--primary-glow);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary-large:hover {
+            background: #2563eb;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.8);
+            transform: translateY(-2px);
+        }
+        .btn-ghost {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255,255,255,0.2);
+            padding: 14px 36px;
+            border-radius: 30px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: var(--font);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-ghost:hover {
+            border-color: white;
+            box-shadow: 0 0 20px rgba(255,255,255,0.15);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 992px) {
+            .challenge-grid, .tech-grid, .features-grid { grid-template-columns: 1fr; }
+            .about-grid { grid-template-columns: 1fr; }
+            .cta-section { padding: 3rem 1.5rem; }
+        }
+    </style>
+    <script src="auth.js" defer></script>
+</head>
+<body>
+    
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="logo-icon"><i class="fa-solid fa-lungs"></i></div>
+            <span>CliniScan AI</span>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="index.html">Analysis</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="about.html" class="active">About CliniScan</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+        </ul>
+        <!-- <div class="nav-profile">
+            <img src="https://ui-avatars.com/api/?name=Dr+Asus&background=0d6efd&color=fff" alt="User Profile">
+            <span>Dr. Asus</span>
+        </div> -->
+    </nav>
+
+    <main class="workspace">
+        <div class="about-grid">
+            <div class="about-text">
+                <h2>Transforming Radiology with AI</h2>
+                <p>
+                    <strong>CliniScan</strong> is an advanced AI-powered Neural Network designed to assist radiologists in rapidly identifying 14 distinct lung abnormalities. Built upon the robust YOLOv8 architecture and utilizing the extensive VinBigData Chest X-ray dataset, it acts as a secondary diagnostic layer.
+                </p>
+                <p class="mt-3">
+                    Our mission is to reduce diagnostic delays, prioritize critical patient scans in radiology queues, and improve diagnostic confidence without replacing the critical expertise of specialized medical professionals.
+                </p>
+
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <div class="feature-icon"><i class="fa-solid fa-microchip"></i></div>
+                        <span>14 Classes of Abnormality Detection</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon"><i class="fa-solid fa-bolt"></i></div>
+                        <span>Real-time Inference (Under 20ms)</span>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                        <span>Secure & Compliant Data Handling</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="about-visual">
+                <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Doctor reviewing scans" class="about-image">
+            </div>
+        </div>
+
+        <section class="challenge-section">
+            <span class="challenge-subtitle">THE CHALLENGE</span>
+            <h2>Why Healthcare Needs AI Now</h2>
+            
+            <div class="challenge-grid">
+                <div class="challenge-card card-danger">
+                    <div class="challenge-icon icon-danger">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                    </div>
+                    <h4>Delayed Diagnosis</h4>
+                    <p>Manual review of hundreds of daily x-rays causes severe bottlenecks, delaying critical patient treatments when every hour matters.</p>
+                </div>
+                
+                <div class="challenge-card card-warning">
+                    <div class="challenge-icon icon-warning">
+                        <i class="fa-solid fa-user-doctor"></i>
+                    </div>
+                    <h4>Radiologist Burnout</h4>
+                    <p>The global shortage of trained radiologists leads to immense workloads, causing severe fatigue and reducing overall diagnostic efficiency.</p>
+                </div>
+                
+                <div class="challenge-card card-alert">
+                    <div class="challenge-icon icon-alert">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <h4>Human Error</h4>
+                    <p>Subtle, early-stage abnormalities are easily missed by the human eye, especially during long, exhausting medical shifts.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tech Stack Section -->
+        <section class="tech-section">
+            <span class="tech-subtitle">TECH STACK</span>
+            <h2>Powered by Cutting-Edge AI</h2>
+            <p>Every component is purpose-built for high-throughput medical imaging with clinical-grade reliability.</p>
+
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <div class="tech-badge">Detection Model</div>
+                    <h4>YOLOv8x</h4>
+                    <p>State-of-the-art real-time object detection for precise bounding box localization of 14 lung abnormalities at radiologist-grade accuracy.</p>
+                    <div class="tech-stat">14 <span>classes detected</span></div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-badge">Classification Model</div>
+                    <h4>DenseNet121</h4>
+                    <p>Deep residual CNN pre-trained on CheXNet achieving over 90% AUC on chest pathology classification, providing probabilistic confidence scores.</p>
+                    <div class="tech-stat">&gt;90% <span>AUC score</span></div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-badge">Dataset</div>
+                    <h4>VinBigData CXR</h4>
+                    <p>Trained and validated on the VinBigData Chest X-ray Grand Challenge dataset — 18,000+ annotated scans from 17 expert radiologists.</p>
+                    <div class="tech-stat">18K+ <span>annotated scans</span></div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-badge">Backend</div>
+                    <h4>Flask + Python</h4>
+                    <p>Lightweight, production-ready REST API serving inference results in milliseconds, with DICOM/JPEG pre-processing pipelines built-in.</p>
+                    <div class="tech-stat">&lt;20ms <span>avg inference</span></div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-badge">Frontend</div>
+                    <h4>Vanilla JS + HTML5</h4>
+                    <p>A zero-dependency, fully responsive UI with live canvas rendering of bounding boxes, glassmorphic design, and particle animations.</p>
+                    <div class="tech-stat">100% <span>client-side rendering</span></div>
+                </div>
+                <div class="tech-card">
+                    <div class="tech-badge">Reporting</div>
+                    <h4>jsPDF + html2canvas</h4>
+                    <p>Generates instant, patient-specific structured PDF diagnostic reports with annotated findings, confidence scores, and model metrics.</p>
+                    <div class="tech-stat">1-click <span>PDF export</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section">
+            <span class="features-subtitle">FEATURES</span>
+            <h2>Built for the Modern Clinician</h2>
+            <p>Every feature is designed to fit seamlessly into clinical workflows without disruption.</p>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-card-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                    <h4>Dual-Model Inference</h4>
+                    <p>Simultaneously runs YOLOv8 for localization and DenseNet121 for classification, providing both "where" and "what" in a single scan.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon"><i class="fa-solid fa-vector-square"></i></div>
+                    <h4>Bounding Box Overlay</h4>
+                    <p>Color-coded, interactive bounding boxes drawn directly on the x-ray image for fast visual verification of detected regions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                    <h4>PDF Report Export</h4>
+                    <p>Export a structured medical summary PDF instantly, including patient name, findings, confidence scores, and annotated scan.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon"><i class="fa-solid fa-gauge-high"></i></div>
+                    <h4>Clinician Dashboard</h4>
+                    <p>Track scan history, patient records, high-risk flags, and overall diagnostic statistics from a centralized analytics dashboard.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                    <h4>DICOM Support</h4>
+                    <p>Natively processes both standard JPEG/PNG and DICOM (.dcm) formats used by hospital PACS and radiology imaging systems.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-card-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h4>Secure & Compliant</h4>
+                    <p>All scans are processed securely. Designed with HIPAA-aligned data handling principles to protect sensitive patient information.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <div class="cta-section">
+            <h2>Ready to See It in Action?</h2>
+            <p>Upload a chest X-ray and experience the speed and precision of AI-assisted radiology diagnostics in real time.</p>
+            <div class="cta-buttons">
+                <a href="index.html" class="btn-primary-large">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Launch Analyzer
+                </a>
+                <a href="contact.html" class="btn-ghost">
+                    <i class="fa-solid fa-envelope"></i> Contact Us
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script src="particles.js"></script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | CliniScan AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: var(--transition);
+        }
+
+        .kpi-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .kpi-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .bg-blue {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+
+        .bg-emerald {
+            background: #ecfdf5;
+            color: #10b981;
+        }
+
+        .bg-amber {
+            background: #fffbeb;
+            color: #f59e0b;
+        }
+
+        .bg-rose {
+            background: #fff1f2;
+            color: #f43f5e;
+        }
+
+        .kpi-details h4 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .kpi-details p {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .chart-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chart-box h3 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Table Styles */
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .styled-table th,
+        .styled-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .styled-table th {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .styled-table a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .styled-table a:hover {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+
+        .styled-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+    </style>
+    <script src="auth.js" defer></script>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="logo-icon"><i class="fa-solid fa-lungs"></i></div>
+            <span>CliniScan AI</span>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="index.html">Analysis</a></li>
+            <li><a href="dashboard.html" class="active">Dashboard</a></li>
+            <li><a href="about.html">About CliniScan</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+        </ul>
+        <!-- <div class="nav-profile">
+            <img src="https://ui-avatars.com/api/?name=Dr+Asus&background=0d6efd&color=fff" alt="User Profile">
+            <span>Dr. Asus</span>
+        </div> -->
+    </nav>
+
+    <main class="workspace">
+        <header class="workspace-header">
+            <h1>Analytics Dashboard</h1>
+            <p>Real-time insights and system performance metrics for YOLOv8 model inference.</p>
+        </header>
+
+        <!-- KPIs -->
+        <div class="dashboard-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon bg-blue"><i class="fa-solid fa-file-medical"></i></div>
+                <div class="kpi-details">
+                    <h4>Total Scans Analyzed</h4>
+                    <p id="kpiTotalScans">200</p>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon bg-emerald"><i class="fa-solid fa-bullseye"></i></div>
+                <div class="kpi-details">
+                    <h4>Model Accuracy (mAP50)</h4>
+                    <p id="kpiAccuracy">87.4%</p>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon bg-amber"><i class="fa-solid fa-bolt"></i></div>
+                <div class="kpi-details">
+                    <h4>Avg Inference Time</h4>
+                    <p id="kpiInferenceTime">14.2 ms</p>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon bg-rose"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="kpi-details">
+                    <h4>Anomalies Detected</h4>
+                    <p id="kpiAnomalies">421</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <!-- Main Chart -->
+            <div class="chart-box">
+                <h3>Disease Distribution (Last 30 Days)</h3>
+                <div class="canvas-wrapper">
+                    <canvas id="diseaseChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Patients -->
+            <div class="chart-box">
+                <h3>Recent High-Priority Cases</h3>
+                <table class="styled-table">
+                    <thead>
+                        <tr>
+                            <th>Patient ID</th>
+                            <th>Patient Name</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentCasesTableBody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+                <!-- <button class="btn-outline w-100 mt-4"
+                    onclick="document.getElementById('patientModal').classList.remove('collapsed')">View
+                    All Patients</button>
+            </div> -->
+            </div>
+
+            <!-- Premium Modal Overlay -->
+            <div class="custom-modal-overlay collapsed" id="patientModal">
+                <div class="custom-modal panel">
+                    <div class="modal-header">
+                        <h3><i class="fa-solid fa-code-branch"></i> Feature Under Active Development</h3>
+                        <button class="icon-btn"
+                            onclick="document.getElementById('patientModal').classList.add('collapsed')"><i
+                                class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <p style="color: var(--text-muted);">The complete, searchable <strong>Patient Registry
+                                Module</strong> is currently being developed for our next release.</p>
+                        <p style="color: var(--text-muted);" class="mt-3">For now, this dashboard intelligently filters
+                            and displays only the most recent critical priority scans for your immediate medical review.
+                        </p>
+                    </div>
+                    <div class="modal-footer mt-4">
+                        <button class="btn-primary w-100"
+                            onclick="document.getElementById('patientModal').classList.add('collapsed')">Understood</button>
+                    </div>
+                </div>
+            </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let dashData = JSON.parse(localStorage.getItem('cliniscanDashboard'));
+            if (!dashData) {
+                dashData = {
+                    totalScans: 200,
+                    anomalies: 3421,
+                    diseaseStats: {
+                        'Cardiomegaly': 856, 'Aortic enlargement': 543, 'Pleural effusion': 610,
+                        'Lung Opacity': 920, 'Nodule/Mass': 345, 'Infiltration': 430, 'Consolidation': 320
+                    },
+                    recentCases: [
+                        { id: '#P-1049', name: 'John Doe', priority: 'Critical', status: 'Review' },
+                        { id: '#P-1052', name: 'Jane Smith', priority: 'Critical', status: 'Review' },
+                        { id: '#P-1065', name: 'Robert Johnson', priority: 'Critical', status: 'Review' },
+                        { id: '#P-1088', name: 'Michael Brown', priority: 'Critical', status: 'Review' }
+                    ]
+                };
+                localStorage.setItem('cliniscanDashboard', JSON.stringify(dashData));
+            }
+            if (!dashData.recentCases) {
+                dashData.recentCases = [
+                    { id: '#P-1049', name: 'John Doe', priority: 'Critical', status: 'Review' },
+                    { id: '#P-1052', name: 'Jane Smith', priority: 'Critical', status: 'Review' },
+                    { id: '#P-1065', name: 'Robert Johnson', priority: 'Critical', status: 'Review' },
+                    { id: '#P-1088', name: 'Michael Brown', priority: 'Critical', status: 'Review' }
+                ];
+                localStorage.setItem('cliniscanDashboard', JSON.stringify(dashData));
+            }
+
+            // MIGRATION PATCH: If the user's browser has old saved dashboard data from before we added 'Patient Name',
+            // inject names into the existing cached records so the UI doesn't say "Unknown Patient".
+            let needsSave = false;
+            dashData.recentCases.forEach((c, index) => {
+                if (!c.name) {
+                    const fallbackNames = ['John Doe', 'Jane Smith', 'Robert Johnson', 'Michael Brown', 'Emily Davis'];
+                    c.name = fallbackNames[index % fallbackNames.length];
+                    needsSave = true;
+                }
+            });
+            if (needsSave) {
+                localStorage.setItem('cliniscanDashboard', JSON.stringify(dashData));
+            }
+
+            // Update KPIs
+            document.getElementById('kpiTotalScans').innerText = dashData.totalScans.toLocaleString();
+            document.getElementById('kpiAnomalies').innerText = dashData.anomalies.toLocaleString();
+
+            // Render Recent Cases
+            const tbody = document.getElementById('recentCasesTableBody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                dashData.recentCases.forEach(c => {
+                    const badgeClass = c.priority === 'Critical' ? 'badge-danger' : 'badge-warning';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${c.id}</td>
+                            <td style="font-weight: 500; color: var(--text-main);">${c.name || 'Unknown Patient'}</td>
+                            <td><span class="badge ${badgeClass}">${c.priority}</span></td>
+                            <td><a href="#">${c.status}</a></td>
+                        </tr>
+                    `;
+                });
+            }
+
+            const ctx = document.getElementById('diseaseChart').getContext('2d');
+
+            const sortedStats = Object.entries(dashData.diseaseStats).sort((a, b) => b[1] - a[1]);
+            const topStats = sortedStats.slice(0, 7);
+
+            const classes = topStats.map(item => item[0]);
+            const dataStats = topStats.map(item => item[1]);
+
+            let gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, '#0b5edd');
+            gradient.addColorStop(1, '#60a5fa');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: classes,
+                    datasets: [{
+                        label: 'Detections',
+                        data: dataStats,
+                        backgroundColor: gradient,
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            grid: { borderDash: [5, 5] },
+                            beginAtZero: true
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+    <script src="particles.js"></script>
+</body>
+
+</html>

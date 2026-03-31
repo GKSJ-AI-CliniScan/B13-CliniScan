@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CliniScan | AI Lung Abnormality Detection</title>
+    <!-- Modern Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js" defer></script>
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="logo-icon">
+                <i class="fa-solid fa-lungs"></i>
+            </div>
+            <span>CliniScan AI</span>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="index.html" class="active">Analysis</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="about.html">About CliniScan</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+        </ul>
+        <!-- <div class="nav-profile">
+            <img src="https://ui-avatars.com/api/?name=Dr+Asus&background=0d6efd&color=fff" alt="User Profile">
+            <span>Dr. Asus</span>
+        </div> -->
+    </nav>
+
+    <!-- Main Workspace -->
+    <main class="workspace">
+
+        <!-- Header Section -->
+        <header class="workspace-header">
+            <h1>Diagnostic X-Ray Analysis</h1>
+            <p>Upload a chest X-Ray DICOM or image file to instantly detect 14 distinct lung abnormalities using YOLOv8
+                and DenseNet121.
+            </p>
+        </header>
+
+        <div class="analysis-container">
+
+            <!-- Left Column: Upload & Image Viewer -->
+            <section class="viewer-section panel">
+
+                <!-- Upload State (Active initially) -->
+                <div class="upload-area" id="dropZone">
+                    <input type="file" id="fileInput" accept="image/png, image/jpeg, .dcm" hidden>
+                    <div class="upload-content">
+                        <div class="upload-icon-wrapper">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </div>
+                        <h3>Drag & Drop X-Ray Image</h3>
+                        <p>or click to browse from your computer</p>
+                        <span class="file-formats">Supports: PNG, JPG, JPEG, DICOM</span>
+                        <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
+                            Browse Files
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Analysis State (Hidden initially) -->
+                <div class="image-preview collapsed" id="previewArea">
+                    <div class="preview-header">
+                        <span class="filename" id="displayFilename">scan_00142.png</span>
+                        <div class="preview-actions">
+                            <button class="icon-btn" title="Zoom In"><i
+                                    class="fa-solid fa-magnifying-glass-plus"></i></button>
+                            <button class="icon-btn" title="Brightness/Contrast"><i
+                                    class="fa-solid fa-circle-half-stroke"></i></button>
+                            <button class="icon-btn text-danger" id="clearBtn" title="Remove"><i
+                                    class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="scan-canvas-wrapper" id="scanCanvasWrapper">
+                        <!-- Simulated X-Ray Image -->
+                        <div class="mock-xray" id="mockXray">
+                            <!-- Bounding boxes will be injected here via JS -->
+                        </div>
+
+                        <!-- Scanning Overlay Animation (Hidden initially) -->
+                        <div class="scanner-overlay" id="scannerOverlay">
+                            <div class="scanner-line"></div>
+                            <div class="scanning-text">
+                                <i class="fa-solid fa-microchip fa-spin"></i> YOLOv8 Analysis in Progress...
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trigger Analysis Button -->
+                    <button class="btn-primary btn-large w-100 mt-3" id="analyzeBtn">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Run AI Diagnostics
+                    </button>
+                </div>
+
+            </section>
+
+            <!-- Right Column: Results & Info -->
+            <section class="results-section panel">
+
+                <div class="results-header">
+                    <h2>Diagnostic Results</h2>
+                    <span class="badge badge-neutral" id="statusBadge">Awaiting Upload</span>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-results" id="emptyResults">
+                    <div class="empty-icon">
+                        <i class="fa-solid fa-file-medical"></i>
+                    </div>
+                    <p>Upload a scan and run analysis to view findings, confidence scores, and bounding box coordinates.
+                    </p>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-results collapsed" id="loadingResults">
+                    <div class="spinner"></div>
+                    <p>Processing image through CliniScan Neural Network...</p>
+                    <div class="progress-bar-container">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+
+                <!-- Findings Content (Hidden initially) -->
+                <div class="findings-content collapsed" id="findingsContent">
+
+                    <!-- Dynamic summary gets injected here if needed via JS -->
+
+                    <h3 class="section-title mt-4">Detected Classes</h3>
+
+                    <ul class="finding-list" id="findingList">
+                        <!-- Populated by JS -->
+                    </ul>
+
+                    <h3 class="section-title mt-4">Model Metrics</h3>
+                    <div class="metrics-grid">
+                        <div class="metric-box">
+                            <span class="metric-label">Inference Time</span>
+                            <span class="metric-value">12.4 ms</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Resolution</span>
+                            <span class="metric-value">1024x1024</span>
+                        </div>
+                        <div class="metric-box">
+                            <span class="metric-label">Model</span>
+                            <span class="metric-value">YOLOv8x</span>
+                        </div>
+                    </div>
+
+                    <button class="btn-outline w-100 mt-4" id="exportReportBtn">
+                        <i class="fa-regular fa-file-pdf"></i> Export Detailed Report
+                    </button>
+
+                </div>
+
+            </section>
+
+        </div>
+
+        <!-- Workflow Section -->
+        <section class="workflow-section">
+            <div class="workflow-header">
+                <span class="workflow-subtitle">THE SOLUTION</span>
+                <h2>Intelligent Workflow Automation</h2>
+                <p>AI-CliniScan integrates seamlessly into existing hospital PAC systems, acting as a tireless, highly
+                    accurate second pair of eyes.</p>
+            </div>
+
+            <div class="workflow-grid">
+                <div class="workflow-step">
+                    <div class="step-icon">
+                        <i class="fa-solid fa-file-arrow-up"></i>
+                    </div>
+                    <h4>1. Upload Scan</h4>
+                    <p>Securely upload DICOM/JPEG to our HIPAA-compliant cloud node.</p>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-icon">
+                        <i class="fa-solid fa-microchip"></i>
+                    </div>
+                    <h4>2. AI Processing</h4>
+                    <p>YOLOv8 & DenseNet121 process the matrix in milliseconds.</p>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-icon">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    <h4>3. Detection</h4>
+                    <p>Boxes and heatmaps pinpoint 14+ distinct pathologies.</p>
+                </div>
+                <div class="workflow-step">
+                    <div class="step-icon">
+                        <i class="fa-solid fa-file-medical"></i>
+                    </div>
+                    <h4>4. Smart Report</h4>
+                    <p>Structured medical report generated for instant verification.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="script.js"></script>
+    <script src="particles.js"></script>
+</body>
+
+</html>
