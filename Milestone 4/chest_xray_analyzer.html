@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUNG ASSIST — Humane Diagnostics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#FAFAF9; --surface:#FFFFFF; --surface-2:#F5F5F4;
+  --border:#E7E5E4; --text:#27272A; --muted:#71717A;
+  --accent:#65A30D; --accent-h:#4D7C0F; --accent-txt:#FFFFFF;
+  --danger:#F43F5E; --danger-bg:#FFF1F2;
+  --ok:#65A30D; --ok-bg:#F7FEE7;
+  --r-sm:8px; --r-md:16px; --r-lg:24px;
+  --sh-sm:0 4px 12px rgba(39,39,42,.05),0 1px 3px rgba(39,39,42,.03);
+  --sh-md:0 10px 30px rgba(39,39,42,.07),0 4px 8px rgba(39,39,42,.04);
+  --sh-lg:0 24px 64px rgba(39,39,42,.1),0 8px 16px rgba(39,39,42,.06);
+  --ease:.28s cubic-bezier(.4,0,.2,1);
+  --ff-sans:'DM Sans',sans-serif; --ff-head:'Lora',serif; --ff-mono:'JetBrains Mono',monospace;
+}
+[data-theme="dark"] {
+  --bg:#1C1917; --surface:#292524; --surface-2:#44403C;
+  --border:#44403C; --text:#FAFAF9; --muted:#A8A29E;
+  --accent:#A3E635; --accent-h:#BEF264; --accent-txt:#1C1917;
+  --danger:#FB7185; --danger-bg:rgba(244,63,94,.15);
+  --ok:#A3E635; --ok-bg:rgba(101,163,13,.15);
+  --sh-sm:0 4px 12px rgba(0,0,0,.22); --sh-md:0 10px 30px rgba(0,0,0,.32);
+  --sh-lg:0 24px 64px rgba(0,0,0,.46);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ff-sans);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;transition:background var(--ease),color var(--ease);-webkit-font-smoothing:antialiased}
+
+/* ── Theme FAB ─────────────────────────────────── */
+.theme-fab{position:fixed;top:20px;right:20px;width:44px;height:44px;border-radius:50%;background:var(--surface);border:1px solid var(--border);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2000;box-shadow:var(--sh-sm);transition:all var(--ease)}
+.theme-fab:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+
+/* ── Shell + Sidebar ───────────────────────────── */
+.shell{display:flex;min-height:100vh}
+.sidebar{width:272px;background:var(--bg);border-right:1px solid var(--border);padding:36px 24px;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto}
+.logo{margin-bottom:40px}
+.logo-mark{font-family:var(--ff-head);font-weight:600;font-style:italic;font-size:1.6rem;letter-spacing:-.02em;color:var(--text)}
+.logo-sub{font-size:.78rem;font-weight:500;color:var(--muted);margin-top:3px;letter-spacing:.03em}
+nav{display:flex;flex-direction:column;gap:6px}
+.nav-item{display:flex;align-items:center;gap:13px;padding:11px 14px;border-radius:var(--r-sm);font-size:.92rem;font-weight:500;color:var(--muted);cursor:pointer;transition:all var(--ease);border:1px solid transparent}
+.nav-item svg{width:19px;height:19px;opacity:.75;flex-shrink:0}
+.nav-item:hover{background:var(--surface-2);color:var(--text)}
+.nav-item.active{background:var(--surface);color:var(--accent);border-color:var(--border);box-shadow:var(--sh-sm)}
+.nav-item.active svg{opacity:1;stroke:var(--accent)}
+.main{flex:1;margin-left:272px;padding:48px 52px;max-width:1180px}
+.page{display:none}
+.page.active{display:block;animation:pageIn .4s ease forwards}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.page-title{font-family:var(--ff-head);font-weight:500;font-size:1.9rem;letter-spacing:-.025em;margin-bottom:32px;color:var(--text)}
+
+/* ── Cards ─────────────────────────────────────── */
+.card{background:var(--surface);border-radius:var(--r-md);border:1px solid var(--border);box-shadow:var(--sh-sm);overflow:hidden;transition:box-shadow var(--ease)}
+.card:hover{box-shadow:var(--sh-md)}
+.card-header{padding:18px 22px;border-bottom:1px solid var(--border);font-size:.82rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.055em;display:flex;justify-content:space-between;align-items:center}
+.card-body{padding:22px}
+
+/* ── Buttons ────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:11px 20px;border-radius:var(--r-sm);font-size:.92rem;font-weight:500;border:1px solid transparent;cursor:pointer;transition:all var(--ease);font-family:var(--ff-sans)}
+.btn-primary{background:var(--accent);color:var(--accent-txt);box-shadow:0 4px 12px rgba(101,163,13,.22)}
+.btn-primary:hover{background:var(--accent-h);transform:translateY(-2px);box-shadow:0 6px 16px rgba(101,163,13,.32)}
+.btn-primary:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-ghost{background:transparent;color:var(--text);border-color:var(--border)}
+.btn-ghost:hover{background:var(--surface-2)}
+
+/* ── Misc ───────────────────────────────────────── */
+.badge{padding:5px 11px;border-radius:6px;font-size:.78rem;font-weight:600}
+.badge-pos{background:var(--danger-bg);color:var(--danger)}
+.badge-neg{background:var(--ok-bg);color:var(--ok)}
+.spinner{width:26px;height:26px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:28px;right:28px;background:var(--text);color:var(--bg);padding:14px 22px;border-radius:var(--r-sm);font-size:.92rem;font-weight:500;transform:translateY(100px);opacity:0;transition:all .35s cubic-bezier(.4,0,.2,1);z-index:9999;box-shadow:var(--sh-md);max-width:340px}
+.toast.show{transform:translateY(0);opacity:1}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:.92rem}
+.empty svg{width:34px;height:34px;opacity:.35;display:block;margin:0 auto 14px}
+
+/* ═══════════════════════════════════════════════════
+   HOME PAGE
+═══════════════════════════════════════════════════ */
+.home-hero{display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center;padding-bottom:12px}
+
+/* eyebrow */
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--ok-bg);color:var(--ok);border:1px solid color-mix(in srgb,var(--ok) 28%,transparent);border-radius:999px;padding:5px 14px;font-size:.78rem;font-weight:600;letter-spacing:.04em;margin-bottom:20px}
+.hero-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* headline */
+.hero-h1{font-family:var(--ff-head);font-size:clamp(1.9rem,3vw,2.75rem);font-weight:600;line-height:1.2;letter-spacing:-.03em;color:var(--text);margin-bottom:18px}
+.hero-h1 em{font-style:italic;color:var(--accent)}
+.hero-desc{font-size:1rem;color:var(--muted);line-height:1.75;max-width:430px;margin-bottom:28px}
+.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:36px}
+
+/* stat strip */
+.hero-stats{display:flex;gap:28px;padding-top:22px;border-top:1px solid var(--border)}
+.hs-val{font-family:var(--ff-head);font-size:1.7rem;font-weight:600;letter-spacing:-.03em;line-height:1}
+.hs-lbl{font-size:.75rem;color:var(--muted);margin-top:4px;font-weight:500}
+
+/* xray card */
+.xray-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-lg)}
+.xray-card-bar{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border)}
+.xbar-dots{display:flex;gap:6px}
+.xbar-dot{width:10px;height:10px;border-radius:50%;background:var(--border)}
+.xbar-dot:nth-child(1){background:#F87171}
+.xbar-dot:nth-child(2){background:#FBBF24}
+.xbar-dot:nth-child(3){background:#34D399}
+.xbar-title{font-family:var(--ff-mono);font-size:.7rem;color:var(--muted)}
+.xray-canvas-wrap{position:relative;background:#0a0c0e;aspect-ratio:1/1;overflow:hidden;cursor:crosshair}
+canvas#xray-canvas{display:block;width:100%;height:100%}
+.xray-tooltip{position:absolute;pointer-events:none;background:rgba(10,12,14,.9);backdrop-filter:blur(6px);color:#e2e8f0;border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:8px 12px;font-size:.73rem;font-family:var(--ff-mono);line-height:1.5;opacity:0;transition:opacity .18s;z-index:10;white-space:nowrap}
+.xray-tooltip.show{opacity:1}
+.xray-info{padding:14px 18px;display:flex;flex-direction:column;gap:9px}
+.xi-row{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;border-radius:6px;padding:4px 6px;cursor:default;transition:background .15s}
+.xi-row:hover{background:var(--surface-2)}
+.xi-label{color:var(--muted);font-weight:500;min-width:148px}
+.xi-bar-wrap{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:0 10px}
+.xi-bar{height:100%;border-radius:2px;transition:width 1.2s ease}
+.xi-val{font-family:var(--ff-mono);font-size:.75rem;color:var(--text);font-weight:500}
+
+/* feature pills */
+.feature-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:44px}
+.feat-pill{display:flex;align-items:center;gap:8px;padding:8px 15px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--border);font-size:.8rem;font-weight:500;color:var(--muted);box-shadow:var(--sh-sm);transition:all var(--ease);cursor:default}
+.feat-pill:hover{color:var(--text);border-color:var(--accent)}
+.feat-pill svg{width:14px;height:14px;stroke:var(--accent);flex-shrink:0}
+
+/* how-it-works */
+.how-strip{margin-top:64px;padding-top:44px;border-top:1px solid var(--border)}
+.how-title{font-family:var(--ff-head);font-size:1.2rem;font-style:italic;color:var(--muted);margin-bottom:26px;font-weight:400}
+.how-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.how-step{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:22px;box-shadow:var(--sh-sm);transition:all var(--ease);position:relative;overflow:hidden}
+.how-step:hover{box-shadow:var(--sh-md);transform:translateY(-3px)}
+.how-step::before{content:attr(data-n);position:absolute;right:14px;top:10px;font-family:var(--ff-head);font-size:2.8rem;font-weight:700;color:var(--border);line-height:1;pointer-events:none}
+.how-step-icon{width:36px;height:36px;border-radius:10px;background:var(--ok-bg);display:flex;align-items:center;justify-content:center;margin-bottom:13px}
+.how-step-icon svg{width:17px;height:17px;stroke:var(--ok)}
+.how-step h3{font-size:.93rem;font-weight:600;color:var(--text);margin-bottom:5px}
+.how-step p{font-size:.8rem;color:var(--muted);line-height:1.55}
+
+/* ═══════════════════════════════════════════════════
+   ANALYSIS PAGE
+═══════════════════════════════════════════════════ */
+.drop-zone{border:2px dashed var(--border);border-radius:var(--r-md);padding:80px 24px;text-align:center;cursor:pointer;transition:all var(--ease);background:var(--surface)}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--surface-2)}
+.drop-title{font-family:var(--ff-head);font-size:1.3rem;font-weight:500;margin-bottom:8px;color:var(--text)}
+.drop-sub{font-size:.92rem;color:var(--muted)}
+.workspace{display:grid;grid-template-columns:1fr 370px;gap:28px}
+.img-toggle{display:flex;background:var(--bg);border-radius:var(--r-sm);padding:3px;border:1px solid var(--border)}
+.img-toggle button{padding:5px 14px;border-radius:6px;border:none;background:transparent;font-size:.78rem;color:var(--muted);cursor:pointer;font-family:var(--ff-sans);font-weight:600;transition:all var(--ease)}
+.img-toggle button.active{background:var(--surface);color:var(--text);box-shadow:var(--sh-sm)}
+.img-viewer{background:var(--bg);min-height:420px;display:flex;align-items:center;justify-content:center;padding:20px}
+.img-viewer img{width:100%;max-height:500px;object-fit:contain;border-radius:var(--r-sm)}
+.status-chip{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;font-size:.82rem;font-weight:600;margin-bottom:14px}
+.status-chip .dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 2s ease infinite}
+.status-chip.pos{background:var(--danger-bg);color:var(--danger)}
+.status-chip.neg{background:var(--ok-bg);color:var(--ok)}
+.finding-row{padding:13px 0;border-bottom:1px solid var(--border)}
+.finding-row:last-child{border-bottom:none;padding-bottom:0}
+.finding-top{display:flex;justify-content:space-between;font-size:.92rem;margin-bottom:7px;font-weight:500}
+.finding-pct{font-family:var(--ff-mono);color:var(--muted);font-size:.82rem}
+.bar-track{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
+.bar-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.bar-fill.bar-danger{background:var(--danger)}
+
+/* ═══════════════════════════════════════════════════
+   DASHBOARD / HISTORY / MODEL
+═══════════════════════════════════════════════════ */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-bottom:28px}
+.stat-card{padding:26px;text-align:center}
+.stat-label{font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.055em}
+.stat-value{font-family:var(--ff-head);font-size:2.4rem;font-weight:500;color:var(--text);letter-spacing:-.03em}
+.history-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:18px;display:flex;align-items:center;gap:18px;margin-bottom:10px;transition:box-shadow var(--ease)}
+.history-item:hover{box-shadow:var(--sh-sm)}
+.history-thumb{width:60px;height:60px;border-radius:8px;background:var(--bg);overflow:hidden;flex-shrink:0}
+.history-thumb img{width:100%;height:100%;object-fit:cover}
+.history-meta{flex:1;min-width:0}
+.history-date{font-family:var(--ff-mono);font-size:.75rem;color:var(--muted);margin-bottom:3px}
+.history-findings{font-size:.95rem;font-weight:500;color:var(--text)}
+.model-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:22px}
+.spec-row{display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px dashed var(--border);font-size:.92rem}
+.spec-row:last-child{border-bottom:none}
+.spec-val{font-family:var(--ff-mono);font-weight:500;color:var(--text)}
+.class-pill{padding:7px 13px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:.85rem;display:inline-block;margin:5px 5px 0 0;color:var(--text);transition:all var(--ease);cursor:default}
+.class-pill:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════ */
+@media(max-width:1000px){.home-hero{grid-template-columns:1fr;gap:40px}.hero-visual{order:-1}.how-steps{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){
+  .shell{flex-direction:column}
+  .sidebar{position:static;width:100%;height:auto;padding:18px 20px;border-right:none;border-bottom:1px solid var(--border);flex-direction:row;align-items:center;justify-content:space-between}
+  .logo{margin-bottom:0}.logo-sub{display:none}
+  nav{flex-direction:row;overflow-x:auto;gap:10px;padding-bottom:2px;-ms-overflow-style:none;scrollbar-width:none}
+  nav::-webkit-scrollbar{display:none}
+  .nav-item{padding:9px 14px;white-space:nowrap}.nav-item svg{display:none}
+  .main{margin-left:0;padding:28px 22px}
+  .workspace{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr}.model-grid{grid-template-columns:1fr}.how-steps{grid-template-columns:1fr}.hero-stats{gap:20px}
+  .theme-fab{top:14px;right:14px}
+}
+</style>
+</head>
+<body>
+
+<button class="theme-fab" onclick="toggleTheme()" aria-label="Toggle theme">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="5"/>
+    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+  </svg>
+</button>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">Lung Assist</div>
+      <div class="logo-sub">Humane Diagnostics</div>
+    </div>
+    <nav id="nav">
+      <div class="nav-item active" data-page="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Home
+      </div>
+      <div class="nav-item" data-page="upload">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        Analysis
+      </div>
+      <div class="nav-item" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+        Overview
+      </div>
+      <div class="nav-item" data-page="history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        History
+      </div>
+      <div class="nav-item" data-page="model">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+        Model Info
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main">
+
+    <!-- ════ HOME ════ -->
+    <div id="home-page" class="page active">
+      <div class="home-hero">
+
+        <!-- Left: copy -->
+        <div class="hero-copy">
+          <div class="hero-eyebrow"><span class="dot"></span>AI-Powered Chest Analysis</div>
+          <h1 class="hero-h1">See what's hidden<br>in every <em>X-ray</em></h1>
+          <p class="hero-desc">
+            Lung Assist pairs a multi-label EfficientNet-B0 classifier with a Faster&nbsp;R-CNN
+            detector to identify up to 15 thoracic pathologies — and draw precise
+            bounding boxes right on your scan, in under two seconds.
+          </p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" onclick="goTo('upload')">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+              Upload an X-ray
+            </button>
+            <button class="btn btn-ghost" onclick="goTo('model')">View model specs</button>
+          </div>
+          <div class="hero-stats">
+            <div class="hs-item"><div class="hs-val">15</div><div class="hs-lbl">Pathologies detected</div></div>
+            <div class="hs-item"><div class="hs-val">91.2%</div><div class="hs-lbl">Validation AUC</div></div>
+            <div class="hs-item"><div class="hs-val">&lt;2s</div><div class="hs-lbl">Inference time</div></div>
+          </div>
+        </div>
+
+        <!-- Right: interactive canvas card -->
+        <div class="hero-visual">
+          <div class="xray-card">
+            <div class="xray-card-bar">
+              <div class="xbar-dots"><div class="xbar-dot"></div><div class="xbar-dot"></div><div class="xbar-dot"></div></div>
+              <span class="xbar-title">chest_scan_demo.png</span>
+              <span style="font-family:var(--ff-mono);font-size:.68rem;color:var(--ok)">● live preview</span>
+            </div>
+            <div class="xray-canvas-wrap" id="xray-wrap">
+              <canvas id="xray-canvas"></canvas>
+              <div class="xray-tooltip" id="xray-tooltip"></div>
+            </div>
+            <div class="xray-info" id="xray-info"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature pills -->
+      <div class="feature-row">
+        <div class="feat-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg>Bounding-box detection</div>
+        <div class="feat-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Multi-label classification</div>
+        <div class="feat-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Scan history &amp; tracking</div>
+        <div class="feat-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Confidence scoring</div>
+        <div class="feat-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Annotated overlay</div>
+      </div>
+
+      <!-- How it works -->
+      <div class="how-strip">
+        <div class="how-title">How it works</div>
+        <div class="how-steps">
+          <div class="how-step" data-n="1">
+            <div class="how-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg></div>
+            <h3>Upload your scan</h3>
+            <p>Drag and drop any chest X-ray in PNG or JPG format. Images are processed locally on your server and never leave your machine.</p>
+          </div>
+          <div class="how-step" data-n="2">
+            <div class="how-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg></div>
+            <h3>Dual-model inference</h3>
+            <p>EfficientNet-B0 classifies all 15 pathologies simultaneously. Faster R-CNN then localises each finding with clean bounding boxes.</p>
+          </div>
+          <div class="how-step" data-n="3">
+            <div class="how-step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <h3>Review the results</h3>
+            <p>Findings are ranked by confidence with colour-coded bars. Toggle between the original and annotated view. Every scan is saved to history.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ ANALYSIS ════ -->
+    <div id="upload-page" class="page">
+      <h1 class="page-title">Run Analysis</h1>
+      <div id="drop-zone" class="drop-zone" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)" onclick="document.getElementById('file-input').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" style="width:50px;height:50px;margin:0 auto 18px;color:var(--accent);opacity:.85"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+        <div class="drop-title">Select a chest X-ray</div>
+        <div class="drop-sub">Drag &amp; drop or click to browse · PNG, JPG</div>
+        <input type="file" id="file-input" accept="image/*" style="display:none" onchange="onFileSelected(event)">
+      </div>
+      <div id="workspace" class="workspace" style="display:none">
+        <div class="card">
+          <div class="card-header">Viewer<div class="img-toggle"><button id="btn-orig" class="active" onclick="switchView('orig')">Original</button><button id="btn-annot" onclick="switchView('annot')">Annotated</button></div></div>
+          <div class="img-viewer" id="img-viewer">
+            <img id="preview-img" src="" alt="X-ray" style="display:none">
+            <img id="annot-img" src="" alt="Annotated" style="display:none">
+            <div id="img-placeholder" class="empty">Image will appear here</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:22px">
+          <div class="card"><div class="card-header">Status</div><div class="card-body" id="status-content"><div class="empty" style="padding:20px">Ready for analysis</div></div></div>
+          <div class="card" style="flex:1"><div class="card-header">Findings</div><div class="card-body" id="findings-content"><div class="empty" style="padding:20px">No data yet</div></div></div>
+          <div style="display:flex;gap:14px">
+            <button class="btn btn-primary" id="analyze-btn" onclick="runAnalysis()" style="flex:1">Analyze Image</button>
+            <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ DASHBOARD ════ -->
+    <div id="dashboard-page" class="page">
+      <h1 class="page-title">Overview</h1>
+      <div class="stats-grid">
+        <div class="card stat-card"><div class="stat-label">Total Scans</div><div class="stat-value" id="stat-total">—</div></div>
+        <div class="card stat-card"><div class="stat-label">Positive Rate</div><div class="stat-value" id="stat-pos">—</div></div>
+        <div class="card stat-card"><div class="stat-label">Avg Confidence</div><div class="stat-value" id="stat-conf">—</div></div>
+      </div>
+      <div class="card"><div class="card-header">Recent Scans</div><div class="card-body" id="recent-list" style="padding:10px 22px"><div class="empty">No scans yet.</div></div></div>
+    </div>
+
+    <!-- ════ HISTORY ════ -->
+    <div id="history-page" class="page">
+      <h1 class="page-title">Scan History</h1>
+      <div id="history-list"><div class="empty">Your history is empty.</div></div>
+    </div>
+
+    <!-- ════ MODEL INFO ════ -->
+    <div id="model-page" class="page">
+      <h1 class="page-title">Technical Specs</h1>
+      <div class="model-grid">
+        <div class="card"><div class="card-header">Classifier</div><div class="card-body">
+          <div class="spec-row"><span>Architecture</span><span class="spec-val">EfficientNet-B0</span></div>
+          <div class="spec-row"><span>Input Size</span><span class="spec-val">224 × 224</span></div>
+          <div class="spec-row"><span>Parameters</span><span class="spec-val">5.3 M</span></div>
+          <div class="spec-row"><span>Training Epochs</span><span class="spec-val">25</span></div>
+          <div class="spec-row"><span>Best Val AUC</span><span class="spec-val">0.912</span></div>
+          <div class="spec-row"><span>Loss</span><span class="spec-val">BCEWithLogitsLoss</span></div>
+        </div></div>
+        <div class="card"><div class="card-header">Detector</div><div class="card-body">
+          <div class="spec-row"><span>Architecture</span><span class="spec-val">Faster R-CNN</span></div>
+          <div class="spec-row"><span>Backbone</span><span class="spec-val">ResNet-50 FPN</span></div>
+          <div class="spec-row"><span>Input Size</span><span class="spec-val">224 × 224</span></div>
+          <div class="spec-row"><span>Training Epochs</span><span class="spec-val">10</span></div>
+          <div class="spec-row"><span>Trainable Layers</span><span class="spec-val">3 FPN layers</span></div>
+          <div class="spec-row"><span>Best Val Loss</span><span class="spec-val">0.21</span></div>
+        </div></div>
+      </div>
+      <div class="card"><div class="card-header">Detectable Classes (15)</div><div class="card-body">
+        <div class="class-pill">Aortic enlargement</div><div class="class-pill">Atelectasis</div><div class="class-pill">Calcification</div><div class="class-pill">Cardiomegaly</div><div class="class-pill">Consolidation</div><div class="class-pill">ILD</div><div class="class-pill">Infiltration</div><div class="class-pill">Lung Opacity</div><div class="class-pill">Nodule / Mass</div><div class="class-pill">Other lesion</div><div class="class-pill">Pleural effusion</div><div class="class-pill">Pleural thickening</div><div class="class-pill">Pneumothorax</div><div class="class-pill">Pulmonary fibrosis</div><div class="class-pill">No finding</div>
+      </div></div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+
+/* ── Theme ───────────────────────────────────────── */
+const html = document.documentElement;
+(()=>{ html.setAttribute('data-theme', localStorage.getItem('theme')||'light'); })();
+function toggleTheme(){
+  const n = html.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', n);
+  localStorage.setItem('theme', n);
+}
+
+/* ── Navigation ──────────────────────────────────── */
+function goTo(name){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.page===name));
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active', p.id===name+'-page'));
+  if(name==='dashboard') loadDashboard();
+  if(name==='history')   loadHistory();
+}
+document.querySelectorAll('.nav-item').forEach(item=>item.addEventListener('click',()=>goTo(item.dataset.page)));
+
+/* ══════════════════════════════════════════════════
+   INTERACTIVE X-RAY CANVAS
+══════════════════════════════════════════════════ */
+const DEMO = [
+  { label:'Cardiomegaly',       conf:.89, color:'#F87171', x:.26, y:.38, w:.40, h:.40 },
+  { label:'Aortic enlargement', conf:.74, color:'#FBBF24', x:.37, y:.16, w:.30, h:.30 },
+  { label:'Pleural effusion',   conf:.61, color:'#60A5FA', x:.05, y:.52, w:.38, h:.36 },
+];
+
+let frame=0, hovered=null;
+
+function drawXray(){
+  const canvas = document.getElementById('xray-canvas');
+  const wrap   = document.getElementById('xray-wrap');
+  if(!canvas || !wrap) return;
+  const W = wrap.clientWidth, H = W;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // bg gradient
+  const g = ctx.createRadialGradient(W*.5,H*.44,H*.04,W*.5,H*.44,H*.58);
+  g.addColorStop(0,'#2c3a4e'); g.addColorStop(.5,'#1a2332'); g.addColorStop(1,'#0d1420');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+  // ribs
+  ctx.lineWidth=1.4; ctx.strokeStyle='rgba(255,255,255,0.06)';
+  for(let i=0;i<7;i++){
+    const cy=H*(.26+i*.066), rw=W*(.37-i*.01);
+    ctx.beginPath(); ctx.ellipse(W*.27,cy,rw,H*.04,-.18,0,Math.PI); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(W*.73,cy,rw,H*.04,Math.PI+.18,Math.PI,Math.PI*2); ctx.stroke();
+  }
+
+  // spine
+  ctx.strokeStyle='rgba(255,255,255,0.09)'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(W*.5,H*.12); ctx.lineTo(W*.5,H*.92); ctx.stroke();
+
+  // heart silhouette
+  ctx.fillStyle='rgba(255,255,255,0.055)';
+  ctx.beginPath(); ctx.ellipse(W*.48,H*.58,W*.16,H*.18,-.1,0,Math.PI*2); ctx.fill();
+
+  // lung fields
+  for(const[ox,fl] of [[-.21,1],[.21,-1]]){
+    ctx.fillStyle='rgba(255,255,255,0.035)';
+    ctx.beginPath(); ctx.ellipse(W*(.5+ox),H*.46,W*.14,H*.24,fl*.08,0,Math.PI*2); ctx.fill();
+  }
+
+  // trachea
+  ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=5;
+  ctx.beginPath(); ctx.moveTo(W*.5,H*.08); ctx.lineTo(W*.5,H*.26);
+  ctx.lineTo(W*.38,H*.3); ctx.moveTo(W*.5,H*.26); ctx.lineTo(W*.62,H*.3); ctx.stroke();
+
+  // animated bounding boxes
+  const t = frame/90;
+  DEMO.forEach((r,i)=>{
+    const px=r.x*W, py=r.y*H, pw=r.w*W, ph=r.h*H;
+    const isH = hovered===i;
+    const alpha = .48 + .28*Math.sin(t*Math.PI*2 + i*1.4);
+    const c = r.color;
+    const aHex = Math.round(alpha*255).toString(16).padStart(2,'0');
+
+    if(isH){ ctx.fillStyle=c+'22'; ctx.fillRect(px,py,pw,ph); }
+
+    ctx.strokeStyle = c+aHex;
+    ctx.lineWidth   = isH ? 2.5 : 1.8;
+    ctx.setLineDash(isH?[]:[6,4]);
+    ctx.strokeRect(px+.5,py+.5,pw-1,ph-1);
+    ctx.setLineDash([]);
+
+    // corner accents
+    const cl = Math.min(pw,ph)*.16;
+    ctx.strokeStyle=c; ctx.lineWidth=isH?3:2;
+    [[px,py,1,1],[px+pw,py,-1,1],[px,py+ph,1,-1],[px+pw,py+ph,-1,-1]].forEach(([cx,cy,dx,dy])=>{
+      ctx.beginPath(); ctx.moveTo(cx+dx*cl,cy); ctx.lineTo(cx,cy); ctx.lineTo(cx,cy+dy*cl); ctx.stroke();
+    });
+
+    // label
+    const fs = Math.max(10,W*.028);
+    ctx.font=`600 ${fs}px 'JetBrains Mono',monospace`;
+    const txt=`${r.label}  ${(r.conf*100).toFixed(0)}%`;
+    const tw=ctx.measureText(txt).width, bp=5;
+    const bx=px, by=py-fs-bp*2-2, bw=tw+bp*2, bh=fs+bp*2, rr=4;
+    ctx.fillStyle=c+'e0';
+    ctx.beginPath();
+    ctx.moveTo(bx+rr,by); ctx.lineTo(bx+bw-rr,by); ctx.quadraticCurveTo(bx+bw,by,bx+bw,by+rr);
+    ctx.lineTo(bx+bw,by+bh-rr); ctx.quadraticCurveTo(bx+bw,by+bh,bx+bw-rr,by+bh);
+    ctx.lineTo(bx+rr,by+bh); ctx.quadraticCurveTo(bx,by+bh,bx,by+bh-rr);
+    ctx.lineTo(bx,by+rr); ctx.quadraticCurveTo(bx,by,bx+rr,by); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.fillText(txt,bx+bp,by+fs+bp*.5);
+  });
+
+  // scanlines
+  for(let y=0;y<H;y+=4){ ctx.fillStyle='rgba(0,0,0,0.05)'; ctx.fillRect(0,y,W,1); }
+}
+
+function animLoop(){ frame++; drawXray(); requestAnimationFrame(animLoop); }
+
+function buildXrayInfo(){
+  const el=document.getElementById('xray-info'); if(!el) return;
+  el.innerHTML=DEMO.map((r,i)=>`
+    <div class="xi-row" id="xir-${i}" onmouseenter="setHov(${i})" onmouseleave="setHov(-1)">
+      <span class="xi-label">${r.label}</span>
+      <div class="xi-bar-wrap"><div class="xi-bar" style="width:${r.conf*100}%;background:${r.color}"></div></div>
+      <span class="xi-val">${(r.conf*100).toFixed(0)}%</span>
+    </div>`).join('');
+}
+
+function setHov(i){
+  hovered = i<0?null:i;
+  DEMO.forEach((_,j)=>{ const r=document.getElementById(`xir-${j}`); if(r) r.style.background=j===i?'var(--surface-2)':''; });
+}
+
+function initHover(){
+  const wrap=document.getElementById('xray-wrap'), tip=document.getElementById('xray-tooltip');
+  if(!wrap||!tip) return;
+  wrap.addEventListener('mousemove',e=>{
+    const rect=wrap.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)/rect.width, my=(e.clientY-rect.top)/rect.height;
+    let found=null;
+    DEMO.forEach((r,i)=>{ if(mx>=r.x&&mx<=r.x+r.w&&my>=r.y&&my<=r.y+r.h) found=i; });
+    hovered=found;
+    if(found!==null){
+      const r=DEMO[found];
+      tip.innerHTML=`<span style="color:${r.color}">${r.label}</span><br>Confidence: ${(r.conf*100).toFixed(0)}%`;
+      tip.style.left=(e.clientX-rect.left+14)+'px';
+      tip.style.top=(e.clientY-rect.top-10)+'px';
+      tip.classList.add('show');
+    } else { tip.classList.remove('show'); }
+  });
+  wrap.addEventListener('mouseleave',()=>{ hovered=null; tip.classList.remove('show'); });
+}
+
+window.addEventListener('load',()=>{ buildXrayInfo(); initHover(); animLoop(); });
+window.addEventListener('resize', drawXray);
+
+/* ════════════════════════════════════════════════
+   ANALYSIS
+════════════════════════════════════════════════ */
+let currentFile=null, originalDataUrl=null, analysisResults=null;
+
+function onDragOver(e){ e.preventDefault(); document.getElementById('drop-zone').classList.add('drag-over'); }
+function onDragLeave(){ document.getElementById('drop-zone').classList.remove('drag-over'); }
+function onDrop(e){ e.preventDefault(); document.getElementById('drop-zone').classList.remove('drag-over'); if(e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); }
+function onFileSelected(e){ if(e.target.files[0]) loadFile(e.target.files[0]); }
+
+function loadFile(file){
+  if(!file.type.startsWith('image/')){ showToast('Please upload an image file.'); return; }
+  currentFile=file; analysisResults=null;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    originalDataUrl=ev.target.result;
+    document.getElementById('preview-img').src=originalDataUrl;
+    document.getElementById('preview-img').style.display='block';
+    document.getElementById('annot-img').style.display='none';
+    document.getElementById('img-placeholder').style.display='none';
+    document.getElementById('drop-zone').style.display='none';
+    document.getElementById('workspace').style.display='grid';
+    switchView('orig'); resetResults();
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearAll(){
+  currentFile=null; originalDataUrl=null; analysisResults=null;
+  document.getElementById('file-input').value='';
+  document.getElementById('drop-zone').style.display='block';
+  document.getElementById('workspace').style.display='none';
+  document.getElementById('preview-img').src='';
+  document.getElementById('annot-img').src='';
+}
+
+function resetResults(){
+  document.getElementById('status-content').innerHTML='<div class="empty" style="padding:20px">Ready for analysis</div>';
+  document.getElementById('findings-content').innerHTML='<div class="empty" style="padding:20px">No data yet</div>';
+  document.getElementById('analyze-btn').disabled=false;
+}
+
+function switchView(mode){
+  const orig=document.getElementById('preview-img'), annot=document.getElementById('annot-img');
+  const bO=document.getElementById('btn-orig'), bA=document.getElementById('btn-annot');
+  if(mode==='orig'){
+    orig.style.display='block'; annot.style.display='none';
+    bO.classList.add('active'); bA.classList.remove('active');
+  } else {
+    if(!annot.src||annot.src===window.location.href){ showToast('Run analysis first to see the annotated view.'); return; }
+    orig.style.display='none'; annot.style.display='block';
+    bO.classList.remove('active'); bA.classList.add('active');
+  }
+}
+
+async function runAnalysis(){
+  if(!currentFile){ showToast('Please upload an image first.'); return; }
+  const btn=document.getElementById('analyze-btn'); btn.disabled=true;
+  document.getElementById('status-content').innerHTML='<div class="empty" style="padding:20px"><div class="spinner"></div>Analyzing…</div>';
+  document.getElementById('findings-content').innerHTML='<div class="empty" style="padding:20px">Processing…</div>';
+  const form=new FormData(); form.append('image',currentFile);
+  try{
+    const res=await fetch(`${API}/api/analyze`,{method:'POST',body:form});
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Server error');
+    analysisResults=data; renderResults(data);
+  } catch(err){ showToast(`Analysis failed: ${err.message}`); btn.disabled=false; resetResults(); }
+}
+
+function renderResults(data){
+  const s=data.summary||{}, cls=data.classification||[], b64=data.annotated_b64;
+  const isPos=s.status==='Positive';
+  document.getElementById('status-content').innerHTML=`
+    <div class="status-chip ${isPos?'pos':'neg'}"><span class="dot"></span>${isPos?'Pathology Detected':'Clear Scan'}</div>
+    <div style="font-size:.9rem;color:var(--muted);line-height:1.6">
+      Primary: <strong style="color:var(--text)">${s.findings?.[0]||'None'}</strong><br>
+      Confidence: <span style="font-family:var(--ff-mono)">${(s.avg_confidence*100).toFixed(1)}%</span>
+    </div>`;
+  if(!cls.length){
+    document.getElementById('findings-content').innerHTML='<div class="empty" style="padding:20px">No distinct pathologies detected.</div>';
+  } else {
+    document.getElementById('findings-content').innerHTML=cls.map(item=>{
+      const pct=(item.confidence*100).toFixed(1);
+      const isDanger=item.class!=='No finding'&&item.confidence>.3;
+      return `<div class="finding-row"><div class="finding-top"><span>${item.class}</span><span class="finding-pct">${pct}%</span></div><div class="bar-track"><div class="bar-fill${isDanger?' bar-danger':''}" style="width:${pct}%"></div></div></div>`;
+    }).join('');
+  }
+  if(b64){ document.getElementById('annot-img').src=`data:image/png;base64,${b64}`; switchView('annot'); }
+}
+
+/* ════════════════════════════════════════════════
+   DASHBOARD + HISTORY
+════════════════════════════════════════════════ */
+async function loadDashboard(){
+  try{
+    const [sR,hR]=await Promise.all([fetch(`${API}/api/stats`),fetch(`${API}/api/history`)]);
+    const st=await sR.json(), hi=await hR.json();
+    document.getElementById('stat-total').textContent=st.total||0;
+    document.getElementById('stat-pos').textContent=st.total?`${st.pos_rate}%`:'—';
+    document.getElementById('stat-conf').textContent=st.total?`${st.avg_conf}%`:'—';
+    const rec=hi.slice(0,5);
+    if(!rec.length){ document.getElementById('recent-list').innerHTML='<div class="empty">No scans yet.</div>'; return; }
+    document.getElementById('recent-list').innerHTML=rec.map(h=>{
+      const isP=h.summary?.status==='Positive';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);font-size:.9rem"><div><div style="font-weight:500">${h.classification?.[0]?.class||'No finding'}</div><div style="font-size:.74rem;color:var(--muted);font-family:var(--ff-mono);margin-top:2px">${h.timestamp}</div></div><span class="badge ${isP?'badge-pos':'badge-neg'}">${h.summary?.status||'N/A'}</span></div>`;
+    }).join('');
+  } catch(e){ console.error(e); }
+}
+
+async function loadHistory(){
+  try{
+    const res=await fetch(`${API}/api/history`), hist=await res.json();
+    if(!hist.length){ document.getElementById('history-list').innerHTML='<div class="empty">Your history is empty.</div>'; return; }
+    document.getElementById('history-list').innerHTML=hist.map(h=>{
+      const isP=h.summary?.status==='Positive';
+      const all=(h.classification||[]).map(c=>c.class).join(', ')||'No finding';
+      return `<div class="history-item"><div class="history-thumb"><img src="${API}/uploads/${h.filename}" onerror="this.style.display='none'" alt=""></div><div class="history-meta"><div class="history-date">${h.timestamp}</div><div class="history-findings">${h.classification?.[0]?.class||'No finding'}</div><div style="font-size:.8rem;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${all}</div></div><span class="badge ${isP?'badge-pos':'badge-neg'}">${h.summary?.status||'N/A'}</span></div>`;
+    }).join('');
+  } catch(e){ console.error(e); }
+}
+
+/* ── Toast ───────────────────────────────────────── */
+let _tt;
+function showToast(msg){
+  const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
+  clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('show'),3500);
+}
+</script>
+</body>
+</html>
