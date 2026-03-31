@@ -1,0 +1,6 @@
+Flask
+flask-cors
+ultralytics
+Pillow
+opencv-python-headless  <-- Use this instead of opencv-python
+gunicorn

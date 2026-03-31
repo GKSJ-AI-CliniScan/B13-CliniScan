@@ -1,0 +1,9 @@
+<<<<<<< HEAD
+vinbigdata_yolo_preprocessed/
+__pycache__/
+yolov8n.pt
+cliniscanpreprocess.ipynb
+=======
+.venv/
+__pycache__/
+>>>>>>> e082c05 (Milestone 4: Final AI model integration and web deployment prep)
