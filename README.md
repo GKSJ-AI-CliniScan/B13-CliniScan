@@ -1,6 +1,6 @@
 # MediScanAI: Clinical Diagnostic Platform
 
-![MediScanAI Workspace](https://raw.githubusercontent.com/mittalyash/AI-CliniScan/main/assets/ui.png) <!-- Replace with actual screenshot later -->
+![MediScanAI Workspace](ui.png)
 
 MediScanAI is an end-to-end full-stack medical machine learning platform. It automates the screening and precise geometric localization of 14 common chest abnormalities utilizing deep CNN architectures, wrapped in a secure, high-contrast clinical web interface.
 
