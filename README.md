@@ -17,6 +17,7 @@ Detection (YOLOv8)
 Localizes abnormalities using bounding boxes
 Explainability (Grad-CAM)
 Highlights regions influencing model decisions
+
 🏗️ System Architecture
 Input X-ray Image
         ↓
@@ -27,10 +28,12 @@ If Abnormal → YOLOv8 Detector
 Grad-CAM Visualization
         ↓
 Streamlit Interface (UI)
+
 📊 Dataset
 Dataset: VinDr-CXR
 Total Images Used: ~15,000
 Train/Test Split: ~13,200 / 1,500
+
 📈 Performance
 🔹 Classification
 Accuracy: ~70%
@@ -39,6 +42,7 @@ ROC-AUC: ~0.96
 Precision: ~0.55
 Recall: ~0.37
 mAP@50: ~0.41
+
 ✨ Features
 Upload chest X-ray images
 Binary classification (Normal / Abnormal)
@@ -48,11 +52,13 @@ Confidence score display
 PDF report generation
 Usage history tracking
 Web-based deployment
+
 🖥️ Tech Stack
 Frontend: Streamlit
 Backend: Python, PyTorch
 Models: ResNet18, YOLOv8
 Libraries: OpenCV, Ultralytics, Albumentations
+
 📂 Project Structure
 App_Deploy/
 │── app.py
@@ -63,8 +69,9 @@ App_Deploy/
 │     ├── report.py
 │── Assets/
 │── history.json
+
 ⚙️ Setup Instructions (Local)
-git clone <your-repo-link>
+git clone https://github.com/GKSJ-AI-CliniScan/B13-CliniScan/edit/Adithya-Jayaram
 cd App_Deploy
 
 pip install -r requirements.txt
@@ -80,15 +87,15 @@ Moderate detection performance (low recall)
 Limited dataset size
 Binary classification only
 Not clinically validated
+
 🔮 Future Work
 Multi-class classification
 Improved detection accuracy
 Larger and more diverse datasets
 Clinical validation
 Integration into healthcare systems
-👨‍💻 Author
 
-Adithya Jayaram
+👨‍💻 Author: Adithya Jayaram
 MSc Artificial Intelligence
 MG University
 
