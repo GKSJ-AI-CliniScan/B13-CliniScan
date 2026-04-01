@@ -1,8 +1,8 @@
 streamlit==1.41.1
-torch==2.0.1
-torchvision==0.15.2
-ultralytics==8.3.45
-Pillow==11.0.0
+torch
+torchvision
+ultralytics
+pillow
 gdown
 numpy
 opencv-python-headless
