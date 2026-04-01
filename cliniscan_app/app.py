@@ -54,7 +54,9 @@ def predict():
         
     except Exception as e:
         return jsonify({'error': str(e)})
-
+@app.route('/')
+def home():
+    return "CliniScan API is running 🚀"
 
 # ✅ RUN APP
 if __name__ == '__main__':
