@@ -1,0 +1,10 @@
+# Do not ignore models as they are required for HF Space deployment
+# (Uncomment below if committing to another Git repo)
+# data/
+# models/
+# results/
+# *.pth
+# *.pt
+# *.ckpt
+# Jupyter checkpoints
+.ipynb_checkpoints/

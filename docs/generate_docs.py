@@ -132,8 +132,50 @@ def create_m3_doc(output_path):
     return features'''
     add_code_snippet(doc, code1)
     
-    doc.add_heading('5. Final Conclusion', level=2)
+    doc.add_heading('6. Final Conclusion', level=2)
     doc.add_paragraph('The complete pipeline from raw DICOM to advanced Grad-CAM explainable AI has been solidified. The system reliably ingests datasets, trains efficiently across dual architectures, and generates output required by clinical standards.')
+    
+    doc.save(output_path)
+    print(f"Saved {output_path}")
+
+def create_m4_doc(output_path):
+    doc = Document()
+    title = doc.add_heading('AI-CliniScan: Milestone 4 Report', 0)
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    doc.add_heading('Full-Stack Integration, UI Refinement & Cloud Deployment', level=1)
+    
+    doc.add_heading('1. Abstract & Objective', level=2)
+    doc.add_paragraph('Milestone 4 transitions our machine learning pipelines from local scripts into a fully-fledged, accessible clinical web application. Our objective was to develop a secure frontend interface (React), construct a robust API server (FastAPI), and deploy the entire system to cloud infrastructure (Vercel & Hugging Face Spaces) for live production inference.')
+    
+    doc.add_heading('2. AI Backend Containerization (Hugging Face Spaces)', level=2)
+    doc.add_paragraph('To serve the heavy PyTorch model weights (ResNet-50 and Faster R-CNN), we engineered a FastAPI backend that handles multipart image uploads and executes inference asynchronously. This architecture isolates the GPU/CPU-heavy operations from the user interface.')
+    doc.add_paragraph('We constructed a Docker environment utilizing the `python:3.9-slim` base image, integrating essential system libraries like `libgl1` required for OpenCV operations. The backend APIs, including `/predict`, were securely pushed and hosted on a Hugging Face Docker Space, providing scalable and reliable model serving.')
+    
+    doc.add_paragraph('FastAPI Inference Endpoint Code Snippet:')
+    code1 = '''@app.post("/predict")
+async def predict_image(file: UploadFile, mode: str = Form(...)):
+    image_bytes = await file.read()
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    
+    if mode == "classify":
+        results = classify_image(image)
+        return {"mode": "classify", "predictions": results}
+    elif mode == "detect":
+        results = detect_abnormalities(image)
+        return {"mode": "detect", "predictions": results}'''
+    add_code_snippet(doc, code1)
+    
+    doc.add_heading('3. Secure Frontend Application (React & Vite)', level=2)
+    doc.add_paragraph('We engineered the frontend interface `MediScanAI` using React, Vite, and Tailwind CSS. The application architecture establishes secure routing, enforcing authenticated user access before allowing entry into the diagnostic workspace.')
+    doc.add_paragraph('A sophisticated user dashboard manages session history, allowing clinicians to review past analyses. The core analysis workspace was overhauled with a dark-themed, high-contrast UI tailored for clinical environments, reducing eye strain during radiological reviews.')
+    
+    doc.add_heading('4. Dynamic SVG Overlays & Print Reporting', level=2)
+    doc.add_paragraph('Integrating the Faster R-CNN bounding boxes onto standard DOM images posed scaling challenges. We engineered a resolution-independent SVG overlay utilizing a `viewBox="0 0 100 100"` coordinate system. The backend returns scaled percentage coordinates, which perfectly map onto the user\'s uploaded image dynamically, regardless of screen topology.')
+    doc.add_paragraph('Furthermore, we implemented a specialized CSS `@media print` layout that strips away interface elements, rendering a structured, high-contrast, scalable PDF diagnostic report outlining pathology scores and clinical recommendations.')
+    
+    doc.add_heading('5. Cloud Deployment & Conclusion', level=2)
+    doc.add_paragraph('The frontend application was configured with environment variables (`VITE_API_URL`) to seamlessly point to the live Hugging Face Space endpoint, and successfully deployed via Vercel for fast, edge network delivery.')
+    doc.add_paragraph('The successful conclusion of Milestone 4 marks the transition of AI-CliniScan from an experimental PyTorch repository into a 24/7 accessible, secure, and intuitive clinical diagnostic tool capable of augmenting radiological workflows.')
     
     doc.save(output_path)
     print(f"Saved {output_path}")
@@ -146,3 +188,4 @@ if __name__ == '__main__':
     create_m1_doc(os.path.join(base_dir, 'M1-Data-Preparation.docx'))
     create_m2_doc(os.path.join(base_dir, 'M2-Baseline-Training.docx'))
     create_m3_doc(os.path.join(base_dir, 'M3-Optimization-Visualization.docx'))
+    create_m4_doc(os.path.join(base_dir, 'M4-Deployment-Integration.docx'))

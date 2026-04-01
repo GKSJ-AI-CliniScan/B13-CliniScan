@@ -1,38 +1,53 @@
-# AI-CliniScan: Clinical Chest X-Ray Diagnosis & Localization
+# MediScanAI: Clinical Diagnostic Platform
 
-AI-CliniScan is an advanced medical imaging project built to automate the screening and localization of 14 common chest abnormalities using deep learning.
+![MediScanAI Workspace](https://raw.githubusercontent.com/mittalyash/AI-CliniScan/main/assets/ui.png) <!-- Replace with actual screenshot later -->
 
-## 🚀 Accomplishments (Milestone 1-3)
-- **High-Accuracy Classification:** Achieved a peak **0.9449 AUC** using a custom ResNet-50 architecture.
-- **Stable Object Detection:** Implemented and trained a Faster R-CNN (ResNet-50-FPN) for precise localization.
-- **Deployment-Ready Data:** Preprocessed 15,000 images into localized PNG formats with clinical bounding boxes.
-- **Local Acceleration:** Fully optimized for Apple Silicon (MPS) and CPU training on local hardware.
+MediScanAI is an end-to-end full-stack medical machine learning platform. It automates the screening and precise geometric localization of 14 common chest abnormalities utilizing deep CNN architectures, wrapped in a secure, high-contrast clinical web interface.
 
-## 📂 Project Structure
-- `classification/`: Model architecture, training, and inference for multi-label diagnosis.
-- `detection/`: Faster R-CNN implementation for abnormality localization.
-- `data_prep/`: DICOM-to-PNG conversion and YOLO-to-Torchbox label engineering.
-- `results/`: Visual evidence of the AI identifying and localizing abnormalities.
-- `docs/`: Professional Milestone 1, 2, and 3 reports generated for internship evaluation.
-
-## 🔬 How to Run Inference
-### 1. Classification Test
-```bash
-python3 classification/inference.py
-```
-This will pick a random X-ray using the weights in `models/best_resnet_classification.pth` and output the top-3 abnormalities.
-
-### 2. Detection Test
-```bash
-python3 detection/inference.py
-```
-This will use `models/best_faster_rcnn_detection.pth` to generate bounding boxes around detected findings and save them to the `results/` folder.
-
-## 📦 Requirements
-Install dependencies via:
-```bash
-pip install -r requirements.txt
-```
+> *Developed during the AI/ML Internship @ Infosys Springboard.*
 
 ---
-*Developed during the AI/ML Internship @ Infosys Springboard.*
+
+## 🚀 Live Production Links
+- **Vercel Edge Frontend (React/Vite):** [https://mediscanai-tawny.vercel.app](https://mediscanai-tawny.vercel.app)
+- **Hugging Face Backend (FastAPI/Docker):** [https://mittalyash-mediscan-api.hf.space](https://mittalyash-mediscan-api.hf.space)
+
+---
+
+## 📁 Monorepo Structure
+
+### `/frontend`
+The sleek, high-contrast, React 18 interface designed to augment radiological workflows. Built with Vite and Tailwind CSS.
+- **Features:** Dual-mode Analysis, Dynamic Bounding Box SVG overlays, Session persistence, Secure Auth (SHA-256), Clinical Printable Diagnostic Reports.
+
+### `/backend`
+The dual-architecture PyTorch intelligence engine, containerized for Hugging Face Spaces.
+- **Classification:** `ResNet-50` backbone tailored for 14-class multi-label diagnosis (Peak 0.9449 AUC).
+- **Detection:** `Faster R-CNN` (ResNet-50-FPN) for precise diagnostic bounding box generation.
+- **Explainability:** Grad-CAM hooks inject accountability by dynamically rendering activation heatmaps.
+
+### `/docs`
+Contains the structured internship evaluation milestones outlining the entire software and machine learning development lifecycle.
+- **M1:** Data Preparation, EDA & Setup
+- **M2:** Baseline Training & Architectural Implementation
+- **M3:** Advanced Optimizations & Explainable AI (Grad-CAM)
+- **M4:** Full-Stack Integration & Cloud Deployment
+
+---
+
+## ⚙️ Running Locally
+To run the full stack on your local machine:
+
+1. **Boot Backend:**
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app:app --host 0.0.0.0 --port 7860
+```
+
+2. **Boot Frontend:**
+```bash
+cd frontend
+npm install
+VITE_API_URL=http://localhost:7860 npm run dev
+```

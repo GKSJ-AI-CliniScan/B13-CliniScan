@@ -1,0 +1,4 @@
+email,password_hash,username
+user1@example.com,9b8769a4a742959a2d0298c36fb70623f2dfacda8436237df08d8dfd5b37374c,user1
+user2@example.com,4ff971936e788e0a133c911cfca350a41764e528ac6570659a8039d67d730a9e,user2
+admin@cliniscan.com,240be518fabd2724ddb6f0403f5d59911211c694702b13a7faf2ad7c2fe79b5b,admin

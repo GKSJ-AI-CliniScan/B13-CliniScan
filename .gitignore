@@ -1,4 +1,26 @@
-data/
-models/
+# OS Setup
+.DS_Store
+
+# Frontend (React/Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.production
+frontend/.vercel/
+
+# Backend (Python/PyTorch)
+backend/venv/
+backend/env/
+backend/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
+
+# Ignore heavy dataset/processing caches but KEEP models for Hugging Face
+backend/data/
+backend/results/
+backend/.ipynb_checkpoints/
+
+# Exclude massive PyTorch Models from GitHub to prevent file size rejections
 *.pth
 *.pt
+*.ckpt
