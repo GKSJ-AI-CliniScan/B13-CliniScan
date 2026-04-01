@@ -546,18 +546,45 @@ document.addEventListener('DOMContentLoaded', () => {
   function setSummary(type,text){summaryBox.className='summary-box '+type;summaryBox.textContent=text;}
   async function handleFile(file){
     if(!file||!file.type.startsWith('image/')){alert('Please upload a JPG or PNG image.');return;}
+    console.log('%c📁 File Selected', 'color: #9333ea; font-weight: bold; font-size: 12px;', {name: file.name, size: file.size, type: file.type});
     fileNameText.textContent=file.name+' · '+(file.size/1024).toFixed(1)+' KB';
     fileInfoBar.classList.add('show');resultsDash.classList.add('show');aiImg.style.display='none';aiLoading.style.display='flex';setSummary('analyzing','Analyzing radiograph against 14 conditions...');
     const reader=new FileReader();reader.onload=e=>{origImg.src=e.target.result;};reader.readAsDataURL(file);
     const formData=new FormData();formData.append('file',file);
+    console.log('%c🚀 Sending request to /predict', 'color: #0ea5e9; font-weight: bold; font-size: 12px;');
     try{
+      const startTime=performance.now();
       const response=await fetch('/predict',{method:'POST',body:formData});
-      if(!response.ok){throw new Error('Server returned '+response.status);
-        console.log('Server error:', response.status, response);
+      const duration=(performance.now()-startTime).toFixed(2);
+      console.log('%c📊 Response received', 'color: #10b981; font-weight: bold; font-size: 12px;', {status: response.status, duration: duration+'ms'});
+      if(!response.ok){
+        console.error('%c❌ Server Error', 'color: #ef4444; font-weight: bold; font-size: 12px;', {status: response.status, statusText: response.statusText});
+        const errorText=await response.text();
+        console.error('Response body:', errorText);
+        throw new Error(`Server error ${response.status}: ${response.statusText}`);
       } 
       const data=await response.json();
-      if(data.success){aiImg.src='data:image/jpeg;base64,'+data.image_base64;aiImg.style.display='block';aiLoading.style.display='none';if(data.boxes_found>0){setSummary('found',`⚠ Detected ${data.boxes_found} potential abnormalit${data.boxes_found===1?'y':'ies'}. Please consult a radiologist.`);}else{setSummary('clear','✓ No significant abnormalities detected. Lungs appear clear.');}}else{throw new Error(data.error||'Unknown server error');}
-    } catch(err){console.error(err);aiLoading.style.display='none';setSummary('found','❌ Connection failed. Make sure app.py is running: python app.py');}
+      console.log('%c✅ Prediction result', 'color: #8b5cf6; font-weight: bold; font-size: 12px;', {success: data.success, boxes: data.boxes_found});
+      if(data.success){
+        aiImg.src='data:image/jpeg;base64,'+data.image_base64;
+        aiImg.style.display='block';
+        aiLoading.style.display='none';
+        console.log('%c📸 Result image displayed', 'color: #f59e0b; font-weight: bold; font-size: 12px;');
+        if(data.boxes_found>0){
+          setSummary('found',`⚠ Detected ${data.boxes_found} potential abnormalit${data.boxes_found===1?'y':'ies'}. Please consult a radiologist.`);
+        }else{
+          setSummary('clear','✓ No significant abnormalities detected. Lungs appear clear.');
+        }
+      }else{
+        console.error('%c❌ Prediction failed', 'color: #ef4444; font-weight: bold; font-size: 12px;', data);
+        throw new Error(data.error||'Unknown server error');
+      }
+    } catch(err){
+      console.error('%c🔴 Fatal Error', 'color: #dc2626; font-weight: bold; font-size: 14px;', err);
+      console.error('Stack:', err.stack);
+      aiLoading.style.display='none';
+      setSummary('found','❌ Connection failed. Check console logs (F12 → Console) and try again.');
+    }
   }
   browseBtn.addEventListener('click', e=>{e.preventDefault();fileInput.click();});
   fileInput.addEventListener('change', e=>{const f=e.target.files[0];if(f) handleFile(f);});
