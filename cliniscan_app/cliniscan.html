@@ -551,7 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const reader=new FileReader();reader.onload=e=>{origImg.src=e.target.result;};reader.readAsDataURL(file);
     const formData=new FormData();formData.append('file',file);
     try{
-      const response=await fetch('http://127.0.0.1:5000/predict',{method:'POST',body:formData});
+      const response=await fetch('/predict',{method:'POST',body:formData});
       if(!response.ok) throw new Error('Server returned '+response.status);
       const data=await response.json();
       if(data.success){aiImg.src='data:image/jpeg;base64,'+data.image_base64;aiImg.style.display='block';aiLoading.style.display='none';if(data.boxes_found>0){setSummary('found',`⚠ Detected ${data.boxes_found} potential abnormalit${data.boxes_found===1?'y':'ies'}. Please consult a radiologist.`);}else{setSummary('clear','✓ No significant abnormalities detected. Lungs appear clear.');}}else{throw new Error(data.error||'Unknown server error');}
