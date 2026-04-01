@@ -20,7 +20,6 @@ def load_model():
         model = YOLO("best.pt")
     return model
 
-
 # ✅ THEN ROUTES
 @app.route('/predict', methods=['POST'])
 def predict():
