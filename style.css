@@ -1,0 +1,247 @@
+/* ---------------------------
+   GLOBAL BACKGROUND (DEPTH 🔥)
+--------------------------- */
+body {
+    background: radial-gradient(circle at top, #1e293b, #020617);
+    color: #f1f5f9;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* ---------------------------
+   MAIN CONTAINER
+--------------------------- */
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    max-width: 1200px;
+}
+
+/* ---------------------------
+   NAVBAR CONTAINER
+--------------------------- */
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* ---------------------------
+   NAVBAR BUTTONS (REMOVE DEFAULT)
+--------------------------- */
+.stButton > button {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: transparent !important;
+    height: 0px;
+    padding: 0;
+}
+
+/* ---------------------------
+   CUSTOM NAV TABS 🔥
+--------------------------- */
+.nav-btn {
+    text-align: center;
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    color: #cbd5f5;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Hover */
+/* .nav-btn:hover {
+    background: linear-gradient(135deg, #3b82f6, #06b6d4);
+    color: white;
+    transform: scale(1.05);
+} */
+
+/* Active Tab */
+/* .nav-btn.active {
+    background: linear-gradient(135deg, #3b82f6, #06b6d4);
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 0 15px rgba(59,130,246,0.6);
+} */
+
+/* ---------------------------
+   HERO SECTION (GLASS + GLOW)
+--------------------------- */
+.hero {
+    padding: 60px;
+    border-radius: 22px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(18px);
+    text-align: center;
+    margin-bottom: 40px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 0 45px rgba(59,130,246,0.25);
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+.hero h1 {
+    font-size: 48px;
+    font-weight: bold;
+    background: linear-gradient(90deg, #3b82f6, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+    font-size: 18px;
+    color: #cbd5f5;
+}
+
+/* ---------------------------
+   BADGE
+--------------------------- */
+.badge {
+    background: rgba(59,130,246,0.2);
+    padding: 10px 20px;
+    border-radius: 30px;
+    display: inline-block;
+    margin-bottom: 15px;
+    font-size: 14px;
+    border: 1px solid rgba(59,130,246,0.3);
+}
+
+/* ---------------------------
+   CARD DESIGN (GLASS PRO 🔥)
+--------------------------- */
+.card {
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 25px;
+    margin-top: 20px;
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 15px 45px rgba(0,0,0,0.6);
+    transition: all 0.35s ease;
+    animation: fadeIn 0.6s ease-in-out;
+    position: relative;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    background: linear-gradient(120deg, rgba(59,130,246,0.15), transparent);
+}
+
+.card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 25px 70px rgba(0,0,0,0.9);
+}
+
+/* ---------------------------
+   METRIC STYLE
+--------------------------- */
+[data-testid="stMetric"] {
+    background: rgba(255,255,255,0.05);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+}
+
+/* ---------------------------
+   LOADING CONTAINER
+--------------------------- */
+.loading-box {
+    text-align: center;
+    padding: 20px;
+}
+
+/* ---------------------------
+   TEXT
+--------------------------- */
+h1, h2, h3 {
+    color: #60a5fa;
+}
+
+p {
+    color: #cbd5f5;
+}
+
+/* ---------------------------
+   IMAGE STYLING
+--------------------------- */
+img {
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    transition: 0.3s ease;
+}
+
+img:hover {
+    transform: scale(1.04);
+}
+
+/* ---------------------------
+   ALERT BOXES
+--------------------------- */
+.stAlert {
+    border-radius: 12px;
+}
+
+/* ---------------------------
+   PROGRESS BAR
+--------------------------- */
+.stProgress > div > div {
+    background: linear-gradient(90deg, #22c55e, #06b6d4);
+    box-shadow: 0 0 12px rgba(34,197,94,0.8);
+}
+
+/* ---------------------------
+   DIVIDER
+--------------------------- */
+hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+    margin: 30px 0;
+}
+
+/* ---------------------------
+   FOOTER
+--------------------------- */
+footer {
+    text-align: center;
+    font-size: 14px;
+    color: #64748b;
+}
+
+/* ---------------------------
+   SCROLLBAR
+--------------------------- */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(#3b82f6, #06b6d4);
+    border-radius: 10px;
+}
+
+/* ---------------------------
+   ANIMATION
+--------------------------- */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
